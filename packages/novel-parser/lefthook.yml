@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    novel-parser-lint:
+      root: packages/novel-parser/
+      glob: "*.{js,mjs,ts,tsx}"
+      run: pnpm exec eslint {staged_files}
+    novel-parser-typecheck:
+      root: packages/novel-parser/
+      glob: "*.{ts,tsx}"
+      run: pnpm run typecheck
