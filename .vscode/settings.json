@@ -1,0 +1,36 @@
+{
+  "prettier.enable": false,
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never",
+    "source.removeUnusedImports": "never",
+    "source.sortImports": "never",
+  },
+  "eslint.useFlatConfig": true,
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "svelte"
+  ],
+  "yaml.schemas": {
+    "packages/json-schema/schemas/skill-test-cases.json": [
+      "dev/skill-templates/**/tests/cases.yaml",
+      "skills/**/tests/cases.yaml"
+    ],
+    "packages/json-schema/schemas/skill-permissions.json": [
+      "dev/skill-templates/**/permissions.yaml",
+      "skills/**/permissions.yaml"
+    ]
+  },
+  "js/ts.tsdk.path": "./node_modules/typescript/lib",
+  "cSpell.words": [
+    "Aozora",
+    "dexie",
+    "VOICEVOX",
+    "yomutalk"
+  ],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}

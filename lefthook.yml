@@ -1,0 +1,22 @@
+colors: false
+
+extends:
+  - apps/*/lefthook.yml
+  - packages/*/lefthook.yml
+
+pre-commit:
+  parallel: true
+  commands:
+    root-lint:
+      glob: "*.{js,mjs,ts,tsx}"
+      exclude: "{apps,packages}/**"
+      run: pnpm exec eslint {staged_files}
+    root-typecheck:
+      glob: "*.{ts,tsx}"
+      exclude: "{apps,packages}/**"
+      run: pnpm exec tsc --noEmit
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: pnpm exec commitlint --edit {1}

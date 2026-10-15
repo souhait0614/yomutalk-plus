@@ -1,0 +1,27 @@
+saveExact: true
+packages:
+  - 'apps/*'
+  - 'packages/*'
+overrides:
+  eslint-plugin-unused-imports: 4.4.1
+catalog:
+  '@types/node': 24.13.3
+  eslint: 9.39.5
+  eslint-plugin-better-tailwindcss: 4.9.0
+  eslint-plugin-svelte: 3.23.1
+  jiti: 2.7.0
+  typescript: 6.0.3
+  vite: 8.3.4
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@typescript-eslint/parser@8.67.0'
+  - '@typescript-eslint/project-service@8.67.0'
+  - '@typescript-eslint/scope-manager@8.67.0'
+  - '@typescript-eslint/tsconfig-utils@8.67.0'
+  - '@typescript-eslint/types@8.67.0'
+  - '@typescript-eslint/typescript-estree@8.67.0'
+  - '@typescript-eslint/visitor-keys@8.67.0'
+  - wrangler@4.143.0
