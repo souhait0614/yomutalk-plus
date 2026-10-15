@@ -107,7 +107,7 @@ pnpm exec wrangler deploy
 - `node-workspace` プラグインにより、依存するパッケージが更新されると、それを参照するパッケージ（`apps/web` など）のリリース PR も作成されます。
 - 変更履歴は各パッケージ配下（`apps/web/CHANGELOG.md` など）に書かれます。
 - リポジトリ直下のみの変更や、`packages/eslint-config`・`packages/tsconfig`（ツール設定）のみの変更ではリリース PR は作成されません。リリースだけを先に起こしたい場合は `git commit --allow-empty -m "fix: ..."` のように空コミットを使います。
-- リリース PR はどれも `.release-please-manifest.json` を書き換えるため、**1つずつマージ**してください。マージのたびに Release Please が再実行され、残りの PR は最新の `main` に合わせて更新されます。
+- リリース PR はどれも `.release-please-manifest.json` を書き換えるため、**1つずつマージ**してください。`always-update` を有効にしているため、実行のたびに各 PR のブランチは最新の `main` から作り直されます（本文が変わらない PR も更新されます）。
 - 設定画面に表示されるバージョンは `apps/web/package.json` を参照しているため、リリース PR をマージすると自動で更新されます。
 
 ## ライセンス
