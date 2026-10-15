@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    tts-lint:
+      root: packages/tts/
+      glob: "*.{js,mjs,ts,tsx}"
+      run: pnpm exec eslint {staged_files}
+    tts-typecheck:
+      root: packages/tts/
+      glob: "*.{ts,tsx}"
+      run: pnpm run typecheck
