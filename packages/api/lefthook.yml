@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    api-lint:
+      root: packages/api/
+      glob: "*.{js,mjs,ts,tsx}"
+      run: pnpm exec eslint {staged_files}
+    api-typecheck:
+      root: packages/api/
+      glob: "*.{ts,tsx}"
+      run: pnpm run typecheck
