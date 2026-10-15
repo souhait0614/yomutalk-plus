@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "yomutalk-plus",
+  "main": ".svelte-kit/cloudflare/_worker.js",
+  "compatibility_date": "2026-09-29",
+  "compatibility_flags": ["nodejs_als", "global_fetch_strictly_public"],
+  "r2_buckets": [
+    {
+      "binding": "SHARED_FILES",
+      "bucket_name": "yomutalk-shared-files"
+    }
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".svelte-kit/cloudflare"
+  }
+}
