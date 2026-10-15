@@ -103,10 +103,11 @@ pnpm exec wrangler deploy
 
 - 設定は [release-please-config.json](release-please-config.json) と [.release-please-manifest.json](.release-please-manifest.json) です。
 - 初回リリースのバージョンは `1.0.0`（`initial-version`）で、タグは `web-v1.0.0`、`tts-v1.0.0` のようになります。
-- 以降のバージョンは `feat`（マイナー）や `fix`（パッチ）など、マージされたコミットの種別に従って各 `package.json` と `.release-please-manifest.json` に反映されます。コミットメッセージは [commitlint.config.ts](commitlint.config.ts) で検証される形式で書いてください。
+- リリース対象になるのは `feat`（マイナー）、`fix`・`perf`・`revert`（パッチ）、および `!` や `BREAKING CHANGE` を伴うコミット（メジャー）です。`chore`・`docs`・`style`・`refactor`・`test`・`build`・`ci` は変更履歴に載らず、これらだけの変更ではリリース PR が作成されません。コミットメッセージは [commitlint.config.ts](commitlint.config.ts) で検証される形式で書いてください。
 - `node-workspace` プラグインにより、依存するパッケージが更新されると、それを参照するパッケージ（`apps/web` など）のリリース PR も作成されます。
 - 変更履歴は各パッケージ配下（`apps/web/CHANGELOG.md` など）に書かれます。
-- リポジトリ直下のみの変更や、`packages/eslint-config`・`packages/tsconfig`（ツール設定）のみの変更ではリリース PR は作成されません。
+- リポジトリ直下のみの変更や、`packages/eslint-config`・`packages/tsconfig`（ツール設定）のみの変更ではリリース PR は作成されません。リリースだけを先に起こしたい場合は `git commit --allow-empty -m "fix: ..."` のように空コミットを使います。
+- リリース PR はどれも `.release-please-manifest.json` を書き換えるため、**1つずつマージ**してください。マージのたびに Release Please が再実行され、残りの PR は最新の `main` に合わせて更新されます。
 - 設定画面に表示されるバージョンは `apps/web/package.json` を参照しているため、リリース PR をマージすると自動で更新されます。
 
 ## ライセンス

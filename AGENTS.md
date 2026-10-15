@@ -47,7 +47,9 @@ Releases are managed by Release Please (`.github/workflows/release-please.yaml`,
 
 - The node strategy writes the version into each package's own `package.json`, so the version shown in the settings page of `apps/web` follows releases with no extra wiring.
 - The `node-workspace` plugin releases dependents when a local dependency is released. `workspace:*` ranges are left untouched, because release-please skips dependency ranges that start with a protocol (`workspace:`).
-- Commits are attributed to packages by path. Changes limited to the repository root or to the tooling packages (`packages/eslint-config`, `packages/tsconfig`) never trigger a release; ship a conventional commit under the package (or `git commit --allow-empty` with a conventional message) when a release is required.
+- Only `feat` (minor), `fix`/`perf`/`revert` (patch), and breaking changes (major) are releasable units. `chore`, `docs`, `style`, `refactor`, `test`, `build`, and `ci` are hidden from the changelog, so a package whose commits are all of those types gets no release PR at all (`No user facing commits found ... - skipping`). Use a releasable type (`git commit --allow-empty -m "fix: ..."` works for a release-only commit) when a release is required.
+- Commits are attributed to packages by path. Changes limited to the repository root or to the tooling packages (`packages/eslint-config`, `packages/tsconfig`) never trigger a release.
+- Every release PR rewrites `.release-please-manifest.json`, so merge release PRs one at a time; each run refreshes the remaining PRs against the updated `main`.
 - Do not edit `CHANGELOG.md` or `.release-please-manifest.json` by hand.
 
 ## Deployment
