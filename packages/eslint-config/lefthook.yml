@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    eslint-config-lint:
+      root: packages/eslint-config/
+      glob: "*.{js,mjs,ts,tsx}"
+      run: pnpm exec eslint {staged_files}
+    eslint-config-typecheck:
+      root: packages/eslint-config/
+      glob: "*.{ts,tsx}"
+      run: pnpm run typecheck

@@ -1,0 +1,29 @@
+{
+  "name": "@repo/eslint-config",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "exports": {
+    "./typescript.ts": "./typescript.ts",
+    "./svelte.ts": "./svelte.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --cache .",
+    "lint:fix": "eslint --cache --fix ."
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@taiyme/eslint-config": "1.0.1",
+    "@types/node": "catalog:",
+    "@typescript-eslint/parser": "8.71.1",
+    "eslint": "catalog:",
+    "eslint-config-flat-gitignore": "2.4.0",
+    "eslint-plugin-better-tailwindcss": "catalog:",
+    "eslint-plugin-svelte": "catalog:",
+    "globals": "17.13.0",
+    "jiti": "catalog:",
+    "typescript": "catalog:"
+  }
+}
