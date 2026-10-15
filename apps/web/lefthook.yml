@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    web-lint:
+      root: apps/web/
+      glob: "*.{js,mjs,ts,tsx,svelte}"
+      run: pnpm exec eslint --no-warn-ignored {staged_files}
+    web-typecheck:
+      root: apps/web/
+      glob: "*.{js,ts,svelte}"
+      run: pnpm run typecheck
