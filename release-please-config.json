@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "initial-version": "1.0.0",
+  "separate-pull-requests": true,
+  "plugins": [
+    "node-workspace"
+  ],
+  "packages": {
+    "apps/web": {},
+    "packages/api": {},
+    "packages/assets": {},
+    "packages/novel-parser": {},
+    "packages/tts": {}
+  }
+}
