@@ -110,6 +110,23 @@ pnpm exec wrangler deploy
 - リリース PR はどれも `.release-please-manifest.json` を書き換えるため、**1つずつマージ**してください。`always-update` を有効にしているため、実行のたびに各 PR のブランチは最新の `main` から作り直されます（本文が変わらない PR も更新されます）。
 - 設定画面に表示されるバージョンは `apps/web/package.json` を参照しているため、リリース PR をマージすると自動で更新されます。
 
+### リリース PR の CI（GitHub App）
+
+リリース PR の CI を自動実行するため、Release Please は `GITHUB_TOKEN` ではなく専用の GitHub App のインストールトークンで PR を作成します。`GITHUB_TOKEN` で作成・更新された PR は、`pull_request` イベントのワークフローが**承認待ち**（`Approve workflows to run` を押すまで実行されない）になり、`pull_request_target` のワークフロー（`Lint`）は実行自体が作成されません。GitHub App や PAT で作成した PR はこの制限を受けず、CI が自動で実行されます。
+
+セットアップ:
+
+1. [GitHub App](https://docs.github.com/apps/creating-github-apps/setting-up-a-github-app/creating-a-github-app) を作成します。Webhook は無効にし、リポジトリの権限は `Contents: Read and write`・`Issues: Read and write`・`Pull requests: Read and write` のみにします。
+2. 作成した App をこのリポジトリ**だけ**にインストールします。
+3. App の Client ID をリポジトリ変数 `RELEASE_PLEASE_APP_CLIENT_ID` に、生成した秘密鍵（`.pem`）をリポジトリシークレット `RELEASE_PLEASE_APP_PRIVATE_KEY` に登録します。CLI では次のとおりです。
+
+   ```sh
+   gh variable set RELEASE_PLEASE_APP_CLIENT_ID --body "<App の Client ID>"
+   gh secret set RELEASE_PLEASE_APP_PRIVATE_KEY < private-key.pem
+   ```
+
+4. 秘密鍵は定期的にローテーションします（[.github/workflows/release-please.yaml](.github/workflows/release-please.yaml) が 1 時間で失効するトークンを都度発行します）。
+
 ## ライセンス
 
 ソースコードは [MIT License](LICENSE) です。

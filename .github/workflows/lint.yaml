@@ -19,10 +19,12 @@ permissions:
 jobs:
   pre-checkout:
     name: Pre checkout
+    if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
     uses: ./.github/workflows/pre-checkout.yaml
 
   lint:
     name: Lint
+    if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     needs:

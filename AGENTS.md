@@ -38,7 +38,7 @@
 - Novel parser: `pnpm --filter @repo/novel-parser test`, `pnpm --filter @repo/novel-parser typecheck`, and its lint task.
 - TTS package: `pnpm --filter @repo/tts typecheck` and its lint task. It has no build step; consumers import `src/index.ts` directly.
 - API package: `pnpm --filter @repo/api typecheck` and its lint task.
-- Run `pnpm lint`, `pnpm typecheck`, and `pnpm build` for cross-workspace changes. `.github/workflows/lint.yaml` runs `pnpm typecheck` and `pnpm lint` on `main` pushes and pull requests, passing `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` from repository variables; locally that variable comes from `apps/web/.env` (see `apps/web/.env.example`). It is a `$env/static/public` variable, so type checking and building `apps/web` fail while it is unset.
+- Run `pnpm lint`, `pnpm typecheck`, and `pnpm build` for cross-workspace changes. `.github/workflows/lint.yaml` runs `pnpm typecheck` and `pnpm lint` on `main` pushes and pull requests, passing `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` from repository variables; locally that variable comes from `apps/web/.env` (see `apps/web/.env.example`). It is a `$env/static/public` variable, so type checking and building `apps/web` fail while it is unset. Its `pull_request_target` jobs are limited to same-repository head branches (`github.event.pull_request.head.repo.full_name == github.repository`) because the workflow checks out and executes the PR's code; keep that guard when you touch the trigger or the checkout.
 - Browser behavior involving dialogs, selection, scrolling, IndexedDB, PWA/offline, or speech still needs an interactive check because static commands do not cover it.
 
 ## Release
@@ -51,6 +51,7 @@ Releases are managed by Release Please (`.github/workflows/release-please.yaml`,
 - Commits are attributed to packages by path. Changes limited to the repository root or to the tooling packages (`packages/eslint-config`, `packages/tsconfig`) never trigger a release.
 - Every release PR rewrites `.release-please-manifest.json`, so merge release PRs one at a time. `always-update` is enabled, so every run recreates the branch of each open release PR from the current `main` (release-please otherwise only updates a PR when its release notes change), which keeps the manifest edits mergeable.
 - Do not edit `CHANGELOG.md` or `.release-please-manifest.json` by hand.
+- `.github/workflows/release-please.yaml` authenticates with a GitHub App installation token (`actions/create-github-app-token` reading `vars.RELEASE_PLEASE_APP_CLIENT_ID` and `secrets.RELEASE_PLEASE_APP_PRIVATE_KEY`, narrowed to `contents`/`issues`/`pull-requests` write) rather than `GITHUB_TOKEN`, and passes it to the action through `token:`. `GITHUB_TOKEN` is what makes automation-created PRs unusable for CI: their `pull_request` runs stay in the approval-required state and their `pull_request_target` runs are never created, so `Commitlint` and `Lint` would never start on a release PR by themselves. Keep the job's `GITHUB_TOKEN` permissions read-only and do not add secrets or write permissions to the CI workflows — the App token is the only elevated credential in the workflows.
 
 ## Deployment
 
