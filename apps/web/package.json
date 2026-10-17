@@ -20,7 +20,7 @@
     "@repo/tsconfig": "workspace:*",
     "@shadcn-svelte/primitives": "^0.0.1",
     "@sveltejs/adapter-cloudflare": "7.2.9",
-    "@sveltejs/kit": "2.63.0",
+    "@sveltejs/kit": "2.70.2",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tabler/icons-svelte": "3.49.0",
     "@tailwindcss/vite": "4.3.3",
