@@ -62,7 +62,12 @@
 
   const containerDir = $derived(writingMode === 'vertical-rl' ? 'rtl' : 'ltr');
 
-  let containerElement: HTMLElement;
+  // NOTE: bind:this はアンマウント時に null になる。スクロールイベントや rAF コールバックは
+  // アンマウント後にも届くため、containerElement は getContainerElement() 経由で取得し、
+  // 必ず存在を確認してから使う。
+  let containerElement: HTMLElement | null = null;
+  // bind:this が代入する型は非 null のため、直接参照すると null チェックが不要と判定される
+  const getContainerElement = (): HTMLElement | null => containerElement;
   let scrollMaxAnimationFrame: number | undefined;
   let scrollValueAnimationFrame: number | undefined;
   let pendingScrollValue = 0;
@@ -119,34 +124,43 @@
     return rtlScrollModel;
   };
 
-  const getScrollMax = () => Math.max(0, scrollDirection === 'vertical'
-    ? containerElement.scrollHeight - containerElement.clientHeight
-    : containerElement.scrollWidth - containerElement.clientWidth);
+  const getScrollMax = () => {
+    const element = getContainerElement();
+    if (!element) return 0;
+    return Math.max(0, scrollDirection === 'vertical'
+      ? element.scrollHeight - element.clientHeight
+      : element.scrollWidth - element.clientWidth);
+  };
 
   const getScrollOffset = () => {
-    if (scrollDirection === 'vertical') return containerElement.scrollTop;
-    if (containerDir === 'ltr') return containerElement.scrollLeft;
+    const element = getContainerElement();
+    if (!element) return 0;
+    if (scrollDirection === 'vertical') return element.scrollTop;
+    if (containerDir === 'ltr') return element.scrollLeft;
     const model = resolveRtlScrollModel();
-    if (model === 'negative') return -containerElement.scrollLeft;
-    return getScrollMax() - containerElement.scrollLeft;
+    if (model === 'negative') return -element.scrollLeft;
+    return getScrollMax() - element.scrollLeft;
   };
 
   const applyScrollOffset = (offset: number) => {
+    const element = getContainerElement();
+    if (!element) return;
     const clampedOffset = Math.min(Math.max(offset, 0), getScrollMax());
     if (scrollDirection === 'vertical') {
-      containerElement.scrollTop = clampedOffset;
+      element.scrollTop = clampedOffset;
       return;
     }
     if (containerDir === 'ltr') {
-      containerElement.scrollLeft = clampedOffset;
+      element.scrollLeft = clampedOffset;
       return;
     }
     const model = resolveRtlScrollModel();
-    containerElement.scrollLeft = model === 'negative' ? -clampedOffset : getScrollMax() - clampedOffset;
+    element.scrollLeft = model === 'negative' ? -clampedOffset : getScrollMax() - clampedOffset;
   };
 
   const updateScrollMax = () => {
-    if (containerElement.clientWidth === 0 || containerElement.clientHeight === 0) return;
+    const element = getContainerElement();
+    if (!element || element.clientWidth === 0 || element.clientHeight === 0) return;
     const nextScrollMax = getScrollMax();
     measuredScroll = { documentId, scrollMax: nextScrollMax };
     if (nextScrollMax !== scrollMax) scrollMax = nextScrollMax;
@@ -197,10 +211,11 @@
   };
 
   const saveMeasurements = () => {
-    if (!measurementCache) return;
+    const element = getContainerElement();
+    if (!measurementCache || !element) return;
     measurementCache.current = {
-      width: containerElement.clientWidth,
-      height: containerElement.clientHeight,
+      width: element.clientWidth,
+      height: element.clientHeight,
       writingMode,
       documentHash,
       items: get(virtualizer).takeSnapshot(),
@@ -221,7 +236,8 @@
   });
 
   const onScroll = () => {
-    if (containerElement.clientWidth === 0 || containerElement.clientHeight === 0) return;
+    const element = getContainerElement();
+    if (!element || element.clientWidth === 0 || element.clientHeight === 0) return;
     pendingScrollValue = getScrollOffset();
     scheduleScrollMaxUpdate();
     if (scrollValueAnimationFrame !== undefined) return;
@@ -233,22 +249,24 @@
   };
 
   $effect(() => {
-    let width = containerElement.clientWidth;
-    let height = containerElement.clientHeight;
+    const element = getContainerElement();
+    if (!element) return;
+    let width = element.clientWidth;
+    let height = element.clientHeight;
     const resizeObserver = new ResizeObserver(() => {
-      const nextWidth = containerElement.clientWidth;
-      const nextHeight = containerElement.clientHeight;
+      const nextWidth = element.clientWidth;
+      const nextHeight = element.clientHeight;
       if (nextWidth === 0 || nextHeight === 0) return;
       if (nextWidth !== width || nextHeight !== height) {
         width = nextWidth;
         height = nextHeight;
         const instance = get(virtualizer);
         instance.setOptions({ onChange: () => scheduleScrollMaxUpdate() });
-        containerElement.querySelectorAll<HTMLElement>('[data-index]').forEach(instance.measureElement);
+        element.querySelectorAll<HTMLElement>('[data-index]').forEach(instance.measureElement);
       }
       scheduleScrollMaxUpdate();
     });
-    resizeObserver.observe(containerElement);
+    resizeObserver.observe(element);
     window.addEventListener('pagehide', saveMeasurements);
     window.addEventListener('beforeunload', saveMeasurements);
     scheduleScrollMaxUpdate();
@@ -278,7 +296,8 @@
   });
 
   $effect(() => {
-    if (containerElement.clientWidth === 0 || containerElement.clientHeight === 0) return;
+    const element = getContainerElement();
+    if (!element || element.clientWidth === 0 || element.clientHeight === 0) return;
     const measured = measuredScroll;
     if (measured?.documentId !== documentId) return;
     const targetScrollValue = Math.min(Math.max(scrollValue, 0), measured.scrollMax);
@@ -296,7 +315,8 @@
   ): Promise<void> => {
     const { blockIndex, sentenceIndex } = position;
     const targetBlock = novelDocument.blocks[blockIndex];
-    if (!targetBlock?.sentences[sentenceIndex]) return;
+    const element = getContainerElement();
+    if (!targetBlock?.sentences[sentenceIndex] || !element) return;
 
     const generation = ++jumpGeneration;
     const scrollToBlock = () => {
@@ -312,7 +332,7 @@
       await tick();
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       if (generation !== jumpGeneration) return;
-      const blockElement = containerElement.querySelector<HTMLElement>(`[data-novel-block='${blockIndex}']`);
+      const blockElement = element.querySelector<HTMLElement>(`[data-novel-block='${blockIndex}']`);
       if (!blockElement) {
         scrollToBlock();
         continue;
@@ -320,7 +340,7 @@
       get(virtualizer).measureElement(blockElement.parentElement);
       const sentenceElement = blockElement.querySelector<HTMLElement>(`[data-sentence-index='${sentenceIndex}']`);
       const targetRect = (options.wholeBlock ? blockElement : sentenceElement ?? blockElement).getBoundingClientRect();
-      const containerRect = containerElement.getBoundingClientRect();
+      const containerRect = element.getBoundingClientRect();
       const delta = scrollDirection === 'vertical'
         ? containerRect.top + (containerRect.height / 2) - (targetRect.top + (targetRect.height / 2))
         : containerRect.left + (containerRect.width / 2) - (targetRect.left + (targetRect.width / 2));
@@ -340,11 +360,12 @@
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     if (generation !== jumpGeneration) return;
     const targetBlock = novelDocument.blocks[blockIndex];
-    if (!targetBlock?.sentences.some((sentence) => sentence.inlines.length > 0)
-      || containerElement.clientWidth === 0 || containerElement.clientHeight === 0) return;
-    const blockElement = containerElement.querySelector<HTMLElement>(`[data-novel-block='${blockIndex}']`);
+    const element = getContainerElement();
+    if (!element || !targetBlock?.sentences.some((sentence) => sentence.inlines.length > 0)
+      || element.clientWidth === 0 || element.clientHeight === 0) return;
+    const blockElement = element.querySelector<HTMLElement>(`[data-novel-block='${blockIndex}']`);
     if (blockElement) {
-      const containerRect = containerElement.getBoundingClientRect();
+      const containerRect = element.getBoundingClientRect();
       const blockRect = blockElement.getBoundingClientRect();
       const start = scrollDirection === 'vertical' ? blockRect.top : blockRect.left;
       const end = scrollDirection === 'vertical' ? blockRect.bottom : blockRect.right;
@@ -431,7 +452,7 @@
     const getPosition = (node: Node, offset: number) => {
       const element = node instanceof Element ? node : node.parentElement;
       const sentenceElement = element?.closest<HTMLElement>('[data-novel-sentence]');
-      if (!sentenceElement || !containerElement.contains(sentenceElement)) return null;
+      if (!sentenceElement || !containerElement?.contains(sentenceElement)) return null;
 
       const blockIndex = Number(sentenceElement.dataset.blockIndex);
       const sentenceIndex = Number(sentenceElement.dataset.sentenceIndex);
@@ -471,8 +492,9 @@
 
   $effect(() => {
     const callback = () => {
+      const element = getContainerElement();
       const selection = document.getSelection();
-      if (!selection || !containerElement.contains(selection.anchorNode) || !containerElement.contains(selection.focusNode)) return;
+      if (!element || !selection || !element.contains(selection.anchorNode) || !element.contains(selection.focusNode)) return;
       const selectionRange = getSelectionRange(selection);
       if (!selectionRange) return;
       onselectionchange?.({
