@@ -2,11 +2,11 @@
   import type { AozoraTextSource } from '@repo/novel-parser';
   import type { LoadedNovelDocument, LoadedNovelDocumentFileType } from '$lib/db';
   import { composeAozoraText, splitAozoraText } from '@repo/novel-parser';
-  import { IconBook2, IconDotsVertical, IconFilePlus, IconPencil, IconSearch, IconTrash, IconTypography } from '@tabler/icons-svelte';
+  import { IconBook2, IconDotsVertical, IconFilePlus, IconLock, IconLockOpen, IconPencil, IconSearch, IconTrash, IconTypography } from '@tabler/icons-svelte';
   import { goto, replaceState } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { addLoadedNovelDocumentFromFile, deleteLoadedNovelDocument, getLoadedNovelDocuments, updateLoadedNovelDocumentFromFile } from '$lib/db';
+  import { addLoadedNovelDocumentFromFile, deleteLoadedNovelDocument, getLoadedNovelDocuments, setLoadedNovelDocumentEditLocked, updateLoadedNovelDocumentFromFile } from '$lib/db';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Badge } from '$lib/shadcn-svelte/components/ui/badge';
   import { Button, buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
@@ -85,9 +85,10 @@
   let deleteDialogOpen = $state(false);
   let deleteTarget = $state.raw<LoadedNovelDocument>();
   let isDeleting = $state(false);
+  let isTogglingEditLock = $state(false);
 
   const openMetadataDialog = async (document: LoadedNovelDocument) => {
-    if (document.type === 'internal') return;
+    if (document.type !== 'file' || document.isEditLocked) return;
     metadataLoadGeneration += 1;
     const generation = metadataLoadGeneration;
     metadataTarget = document;
@@ -134,6 +135,20 @@
       toast.error(error instanceof Error ? error.message : '小説の情報を変更できませんでした');
     } finally {
       isSavingMetadata = false;
+    }
+  };
+
+  const toggleEditLock = async (document: LoadedNovelDocument) => {
+    if (document.type !== 'file' || isTogglingEditLock) return;
+    const nextEditLocked = !document.isEditLocked;
+    isTogglingEditLock = true;
+    try {
+      await setLoadedNovelDocumentEditLocked(document.id, nextEditLocked);
+      toast.success(nextEditLocked ? '小説の編集をロックしました' : '小説の編集ロックを解除しました');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '編集ロックを変更できませんでした');
+    } finally {
+      isTogglingEditLock = false;
     }
   };
 
@@ -196,9 +211,7 @@
               sm:block
             '/>
           <div class='min-w-0 flex-1'>
-            {#if document.type === 'internal'}
-              <span class='block font-medium wrap-break-word'>{document.title}</span>
-            {:else}
+            {#if document.type === 'file' && !document.isEditLocked}
               <a
                 class='
                   block font-medium wrap-break-word
@@ -207,6 +220,8 @@
                 href={resolve('/(menu)/novels/[id]', { id: document.id })}>
                 {document.title}
               </a>
+            {:else}
+              <span class='block font-medium wrap-break-word'>{document.title}</span>
             {/if}
             <div
               class='
@@ -215,9 +230,12 @@
               '>
               <span>{document.fileType === 'aozoratext' ? '青空文庫形式' : 'プレーンテキスト'}</span>
               {#if document.type === 'internal'}<Badge variant='outline'>内蔵</Badge>{/if}
+              {#if document.type === 'file' && document.isEditLocked}
+                <Badge variant='outline' title='編集がロックされています'><IconLock/> ロック中</Badge>
+              {/if}
             </div>
           </div>
-          {#if document.type === 'file'}
+          {#if document.type === 'file' && !document.isEditLocked}
             <Button
               variant='ghost'
               size='icon'
@@ -236,8 +254,13 @@
             </DropdownMenu.Trigger>
             <DropdownMenu.Content align='end'>
               {#if document.type === 'file'}
-                <DropdownMenu.Item onSelect={() => void openMetadataDialog(document)}>
+                <DropdownMenu.Item
+                  disabled={document.isEditLocked}
+                  onSelect={() => void openMetadataDialog(document)}>
                   <IconTypography/> {document.fileType === 'aozoratext' ? 'タイトル・著者名を変更' : 'ファイル名を変更'}
+                </DropdownMenu.Item>
+                <DropdownMenu.Item onSelect={() => void toggleEditLock(document)}>
+                  {#if document.isEditLocked}<IconLockOpen/> 編集ロックを解除{:else}<IconLock/> 編集をロック{/if}
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator/>
               {/if}

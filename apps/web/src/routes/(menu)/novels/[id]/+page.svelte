@@ -53,6 +53,7 @@
         const document = await appDatabase.loadedNovelDocuments.get(id);
         if (!document) throw new Error('小説が見つかりません。削除されている可能性があります。');
         if (document.type === 'internal') throw new Error('アプリ内蔵小説は編集できません。');
+        if (document.isEditLocked) throw new Error('この小説は編集がロックされています。');
         const [text, bookmarkCount] = await Promise.all([
           decodeTextFile(document.fileData),
           countBookmarksByDocumentId(document.id),

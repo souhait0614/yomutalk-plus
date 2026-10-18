@@ -80,7 +80,7 @@
     try {
       for (const { novel } of selectedEntries) {
         const file = new File([novel.data], fileName(novel), { type: 'text/plain' });
-        await addLoadedNovelDocumentFromFile(novel.fileType, file, novel.writingMode);
+        await addLoadedNovelDocumentFromFile(novel.fileType, file, novel.writingMode, novel.isEditLocked);
       }
       toast.success(`${selectedEntries.length}件の小説を追加しました`);
       await goto(resolve('/'));
@@ -131,6 +131,7 @@
                   {fileTypeLabels[entry.novel.fileType]}
                   ／{writingModeLabels[entry.novel.writingMode]}
                   ／{formatByteSize(entry.novel.data.byteLength)}
+                  {#if entry.novel.isEditLocked}／編集ロック{/if}
                 </Field.Description>
               </Field.Content>
             </Field.Field>

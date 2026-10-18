@@ -16,6 +16,8 @@ interface LoadedNovelDocumentBase {
 
 export interface LoadedFileNovelDocument extends LoadedNovelDocumentBase {
   type: 'file';
+  /** 編集のロック。保存されていない小説はロックなしとして扱う。 */
+  isEditLocked?: boolean;
 }
 
 export interface LoadedInternalNovelDocument extends LoadedNovelDocumentBase {

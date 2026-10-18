@@ -123,6 +123,7 @@ const addLoadedNovelDocumentFromFile = async (
   fileType: LoadedNovelDocumentFileType,
   fileData: File,
   writingMode: NovelWritingMode,
+  isEditLocked = false,
 ): Promise<string> => {
   const title = await getLoadedNovelDocumentFileTitle(fileType, fileData);
   const hash = await computeContentHash(await fileData.arrayBuffer());
@@ -136,6 +137,7 @@ const addLoadedNovelDocumentFromFile = async (
       writingMode,
       hash,
       title,
+      isEditLocked,
       sortOrder: await getNextSortOrder(),
     })
   ));
@@ -155,6 +157,7 @@ const updateLoadedNovelDocumentFromFile = async (
     const document = await appDatabase.loadedNovelDocuments.get(id);
     if (!document) throw new Error('Novel document not found');
     if (document.type === 'internal') throw new Error('アプリ内蔵小説は編集できません。');
+    if (document.isEditLocked) throw new Error('この小説は編集がロックされています。');
     if (expectedHash !== undefined && document.hash !== expectedHash) {
       throw new Error('小説が別の画面で更新されました。再読み込みしてから編集してください。');
     }
@@ -166,8 +169,18 @@ const updateLoadedNovelDocumentFromFile = async (
       writingMode,
       hash,
       title,
+      isEditLocked: document.isEditLocked ?? false,
       sortOrder: document.sortOrder,
     });
+  });
+};
+
+const setLoadedNovelDocumentEditLocked = async (id: string, isEditLocked: boolean): Promise<void> => {
+  await appDatabase.transaction('rw', appDatabase.loadedNovelDocuments, async () => {
+    const document = await appDatabase.loadedNovelDocuments.get(id);
+    if (!document) throw new Error('Novel document not found');
+    if (document.type === 'internal') throw new Error('アプリ内蔵小説は編集できません。');
+    await appDatabase.loadedNovelDocuments.put({ ...document, isEditLocked });
   });
 };
 
@@ -271,6 +284,7 @@ export {
   moveLoadedNovelDocument,
   resetDatabase,
   setBookmarkFolder,
+  setLoadedNovelDocumentEditLocked,
   updateLoadedInternalNovelDocument,
   updateLoadedNovelDocumentFromFile,
 };

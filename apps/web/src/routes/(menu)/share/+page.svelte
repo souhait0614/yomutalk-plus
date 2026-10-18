@@ -60,6 +60,9 @@
               (value) => selectedIds.set(loadedNovelDocument.id, value)}/>
             <Field.Content>
               <Field.Title>{loadedNovelDocument.title}</Field.Title>
+              {#if loadedNovelDocument.type === 'file' && loadedNovelDocument.isEditLocked}
+                <Field.Description>編集ロック中（共有先にも引き継がれます）</Field.Description>
+              {/if}
             </Field.Content>
           </Field.Field>
         </Field.Label>

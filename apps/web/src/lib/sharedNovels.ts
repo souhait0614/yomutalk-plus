@@ -19,6 +19,7 @@ export interface SharedNovel {
   fileType: LoadedNovelDocumentFileType;
   title: string;
   writingMode: NovelWritingMode;
+  isEditLocked: boolean;
 }
 
 /** 共有ファイルの形式バージョン。構造を変えたら上げる。 */
@@ -35,6 +36,7 @@ const sharedNovelsPayloadSchema = v.object({
     fileType: v.picklist(['plaintext', 'aozoratext']),
     title: v.string(),
     writingMode: v.picklist(['horizontal-tb', 'vertical-rl', 'vertical-lr']),
+    isEditLocked: v.optional(v.boolean(), false),
   })),
 });
 
@@ -60,6 +62,7 @@ export const encodeSharedNovels = async (documents: LoadedNovelDocument[]): Prom
     fileType: document.fileType,
     title: document.title,
     writingMode: document.writingMode,
+    isEditLocked: document.type === 'file' && (document.isEditLocked ?? false),
   })));
 
   const bytes = await compress(encode({ version: sharedNovelsFormatVersion, novels }));
@@ -83,6 +86,7 @@ export const decodeSharedNovels = async (blob: Blob): Promise<SharedNovel[]> => 
     fileType: novel.fileType,
     title: novel.title,
     writingMode: novel.writingMode,
+    isEditLocked: novel.isEditLocked,
   }));
 };
 
