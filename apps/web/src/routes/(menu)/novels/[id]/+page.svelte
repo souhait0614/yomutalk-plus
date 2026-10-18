@@ -1,11 +1,11 @@
 <script lang='ts'>
   import type { LoadedNovelDocument, LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
   import { composeAozoraText, splitAozoraText } from '@repo/novel-parser';
-  import { IconCheck, IconDeviceFloppy, IconList, IconReload } from '@tabler/icons-svelte';
+  import { IconCheck, IconChevronLeft, IconDeviceFloppy, IconList, IconReload, IconTrash } from '@tabler/icons-svelte';
   import { beforeNavigate, goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { appDatabase, updateLoadedNovelDocumentFromFile } from '$lib/db';
+  import { appDatabase, countBookmarksByDocumentId, deleteBookmarksByDocumentId, updateLoadedNovelDocumentFromFile } from '$lib/db';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
@@ -29,6 +29,9 @@
   let isSaving = $state(false);
   let discardDialogOpen = $state(false);
   let pendingUrl = $state<URL>();
+  let linkedBookmarkCount = $state(0);
+  let linkedBookmarksDialogOpen = $state(false);
+  let isDeletingLinkedBookmarks = $state(false);
 
   const draft = $derived(JSON.stringify({ fileType, writingMode, title, author, body }));
   const hasUnsavedChanges = $derived(!isLoading && !loadError && draft !== savedDraft);
@@ -42,13 +45,18 @@
     const controller = new AbortController();
     isLoading = true;
     loadError = '';
+    linkedBookmarkCount = 0;
+    linkedBookmarksDialogOpen = false;
     void (async () => {
       try {
         if (!id) throw new Error('小説が見つかりません。');
         const document = await appDatabase.loadedNovelDocuments.get(id);
         if (!document) throw new Error('小説が見つかりません。削除されている可能性があります。');
         if (document.type === 'internal') throw new Error('アプリ内蔵小説は編集できません。');
-        const text = await decodeTextFile(document.fileData);
+        const [text, bookmarkCount] = await Promise.all([
+          decodeTextFile(document.fileData),
+          countBookmarksByDocumentId(document.id),
+        ]);
         if (controller.signal.aborted) return;
         const nextFileType = document.fileType;
         const parts = nextFileType === 'aozoratext' ? splitAozoraText(text) : undefined;
@@ -60,6 +68,8 @@
           body = parts?.body ?? text;
           header = parts?.header ?? '';
           savedDraft = JSON.stringify({ fileType, writingMode, title, author, body });
+          linkedBookmarkCount = bookmarkCount;
+          linkedBookmarksDialogOpen = bookmarkCount > 0;
           isLoading = false;
         });
       } catch (error) {
@@ -102,6 +112,29 @@
     savedDraft = draft;
     // eslint-disable-next-line svelte/no-navigation-without-resolve
     void goto(pendingUrl);
+  };
+
+  const deleteLinkedBookmarks = async () => {
+    if (!originalDocument || isDeletingLinkedBookmarks) return;
+    isDeletingLinkedBookmarks = true;
+    try {
+      await deleteBookmarksByDocumentId(originalDocument.id);
+      linkedBookmarksDialogOpen = false;
+      toast.success('ブックマークを削除しました');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'ブックマークを削除できませんでした');
+    } finally {
+      isDeletingLinkedBookmarks = false;
+    }
+  };
+
+  const returnToNovelList = () => {
+    if (navigation.canGoBack) {
+      history.back();
+      return;
+    }
+
+    void goto(resolve('/'), { replaceState: true });
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -154,6 +187,27 @@
     <AlertDialog.Footer>
       <AlertDialog.Cancel>編集を続ける</AlertDialog.Cancel>
       <AlertDialog.Action variant='destructive' onclick={discardChanges}>変更を破棄して移動</AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>
+
+<AlertDialog.Root bind:open={linkedBookmarksDialogOpen}>
+  <AlertDialog.Content escapeKeydownBehavior='ignore'>
+    <AlertDialog.Header>
+      <AlertDialog.Title>この小説にはブックマークがあります</AlertDialog.Title>
+      <AlertDialog.Description>
+        本文を編集するとブックマークの位置がずれるため、この小説のブックマーク（{linkedBookmarkCount}件）を削除する必要があります。削除は取り消せません。
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <Button variant='outline' disabled={isDeletingLinkedBookmarks} onclick={returnToNovelList}>
+        <IconChevronLeft/> 一覧に戻る
+      </Button>
+      <!-- Close only after the deletion succeeds, so a failure keeps the dialog open. -->
+      <Button variant='destructive' disabled={isDeletingLinkedBookmarks} onclick={() => void deleteLinkedBookmarks()}>
+        {#if isDeletingLinkedBookmarks}<Spinner/>{:else}<IconTrash/>{/if}
+        ブックマークを削除して編集
+      </Button>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

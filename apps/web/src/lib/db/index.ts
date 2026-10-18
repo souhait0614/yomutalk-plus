@@ -46,6 +46,14 @@ const addBookmark = (registeredText: RegisteredText, folderId: string | null = n
 
 const deleteBookmark = (id: string): Promise<void> => appDatabase.bookmarks.delete(id);
 
+const countBookmarksByDocumentId = (documentId: string): Promise<number> => (
+  appDatabase.bookmarks.where('documentId').equals(documentId).count()
+);
+
+const deleteBookmarksByDocumentId = async (documentId: string): Promise<void> => {
+  await appDatabase.bookmarks.where('documentId').equals(documentId).delete();
+};
+
 const getBookmarkFolders = async (): Promise<BookmarkFolder[]> => {
   const folders = await appDatabase.bookmarkFolders.orderBy('sortOrder').toArray();
   return folders;
@@ -252,8 +260,10 @@ export {
   addLoadedInternalNovelDocument,
   addLoadedNovelDocumentFromFile,
   appDatabase,
+  countBookmarksByDocumentId,
   deleteBookmark,
   deleteBookmarkFolder,
+  deleteBookmarksByDocumentId,
   deleteLoadedNovelDocument,
   getBookmarkFolders,
   getBookmarks,
