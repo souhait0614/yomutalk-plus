@@ -31,12 +31,17 @@
   };
 
   const exportDexieDatabase = async () => {
-    const dexieExportImport = await import('dexie-export-import');
-    const blob = await dexieExportImport.exportDB(appDatabase);
-    const compressedBlob = await new Response(
-      blob.stream().pipeThrough(new CompressionStream('gzip')),
-    ).blob();
-    downloadBlob(compressedBlob, `yomutalk-plus-data-backup-${getCurrentDateString()}.${dexieExportDataFileExtension}`);
+    try {
+      const dexieExportImport = await import('dexie-export-import');
+      const blob = await dexieExportImport.exportDB(appDatabase);
+      const compressedBlob = await new Response(
+        blob.stream().pipeThrough(new CompressionStream('gzip')),
+      ).blob();
+      downloadBlob(compressedBlob, `yomutalk-plus-data-backup-${getCurrentDateString()}.${dexieExportDataFileExtension}`);
+    } catch (error) {
+      toast.error('小説・ブックマークのバックアップに失敗しました');
+      console.error('Failed to export the database:', error);
+    }
   };
 
   let importDialogOpen = $state(false);

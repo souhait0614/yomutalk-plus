@@ -11,6 +11,12 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  optimizeDeps: {
+    // バックアップ・復元の動的インポートは、Svelte のテンプレートからしか参照されない関数の中にある。
+    // Vite の依存スキャンは <script> ブロックだけを tree-shaking しながら解析するため、
+    // その関数ごと削除されて依存が検出されず、初回クリック時の import が 504 (Outdated Optimize Dep) になる。
+    include: ['dexie-export-import'],
+  },
   plugins: [
     tailwindcss(),
     sveltekit({
