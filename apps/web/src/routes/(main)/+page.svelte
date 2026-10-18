@@ -4,7 +4,7 @@
   import type { InternalNovelInfo } from '$lib/internalNovels';
   import type { ManuallyEnteredText, RegisteredText, SelectedNovelText } from '$lib/selectedText';
   import { classifySentenceTextType, parseAozoraText, parsePlainText } from '@repo/novel-parser';
-  import { createTtsController, TtsAbortError } from '@repo/tts';
+  import { createTtsController, isTtsAbortError } from '@repo/tts';
   import { autoStartPlayback, ttsPreset } from '$lib/appSettings.svelte';
   import NovelDocumentViewer from '$lib/components/NovelDocumentViewer.svelte';
   import { defaultTtsPresetKey } from '$lib/constants';
@@ -48,9 +48,6 @@
   const initialTtsPreset = resolveTtsPreset(ttsPreset.current);
   let activeTtsPresetKey = $state(initialTtsPreset.key);
   let ttsInstance = $state.raw(createTtsController(initialTtsPreset.preset));
-  const isTtsAbortError = (error: unknown) => (
-    error instanceof TtsAbortError || (error instanceof Error && error.name === 'TtsAbortError')
-  );
 
   const loadedNovelDocumentsQuery = stateQuery(getLoadedNovelDocuments);
   const loadedNovelDocuments = $derived(loadedNovelDocumentsQuery.current ?? []);

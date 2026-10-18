@@ -17,6 +17,7 @@
   import { Label } from '$lib/shadcn-svelte/components/ui/label';
   import * as NativeSelect from '$lib/shadcn-svelte/components/ui/native-select';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
+  import { getErrorMessage } from '$lib/utils/misc';
   import { decodeTextFile } from '$lib/utils/textEncoding';
   import { stateQuery } from 'dexie-svelte-query';
   import { PersistedState } from 'runed';
@@ -62,7 +63,7 @@
       createDialogOpen = false;
       await goto(resolve('/(menu)/novels/[id]', { id }));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '小説を作成できませんでした');
+      toast.error(getErrorMessage(error, '小説を作成できませんでした'));
     } finally {
       isCreating = false;
     }
@@ -107,7 +108,7 @@
       }
     } catch (error) {
       if (generation !== metadataLoadGeneration) return;
-      toast.error(error instanceof Error ? error.message : '小説を読み込めませんでした');
+      toast.error(getErrorMessage(error, '小説を読み込めませんでした'));
       metadataDialogOpen = false;
     } finally {
       if (generation === metadataLoadGeneration) isLoadingMetadata = false;
@@ -132,7 +133,7 @@
       metadataDialogOpen = false;
       toast.success('小説の情報を変更しました');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '小説の情報を変更できませんでした');
+      toast.error(getErrorMessage(error, '小説の情報を変更できませんでした'));
     } finally {
       isSavingMetadata = false;
     }
@@ -146,7 +147,7 @@
       await setLoadedNovelDocumentEditLocked(document.id, nextEditLocked);
       toast.success(nextEditLocked ? '小説の編集をロックしました' : '小説の編集ロックを解除しました');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '編集ロックを変更できませんでした');
+      toast.error(getErrorMessage(error, '編集ロックを変更できませんでした'));
     } finally {
       isTogglingEditLock = false;
     }
@@ -166,7 +167,7 @@
       deleteDialogOpen = false;
       toast.success('小説を削除しました');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '小説を削除できませんでした');
+      toast.error(getErrorMessage(error, '小説を削除できませんでした'));
     } finally {
       isDeleting = false;
     }

@@ -37,6 +37,10 @@ export function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+export function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function getCurrentDateString(): string {
   const now = new Date();
   const year = now.getFullYear();

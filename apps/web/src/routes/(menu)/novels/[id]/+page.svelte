@@ -9,6 +9,8 @@
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
+  import { getErrorMessage } from '$lib/utils/misc';
+  import { goBackOrHome } from '$lib/utils/navigation';
   import { decodeTextFile } from '$lib/utils/textEncoding';
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -33,7 +35,8 @@
   let linkedBookmarksDialogOpen = $state(false);
   let isDeletingLinkedBookmarks = $state(false);
 
-  const draft = $derived(JSON.stringify({ fileType, writingMode, title, author, body }));
+  const serializeDraft = () => JSON.stringify({ fileType, writingMode, title, author, body });
+  const draft = $derived(serializeDraft());
   const hasUnsavedChanges = $derived(!isLoading && !loadError && draft !== savedDraft);
   const canSave = $derived(!isLoading && !isSaving && !!originalDocument && !!title.trim() && hasUnsavedChanges);
   const source = $derived(fileType === 'aozoratext'
@@ -68,14 +71,14 @@
           author = parts?.author ?? '';
           body = parts?.body ?? text;
           header = parts?.header ?? '';
-          savedDraft = JSON.stringify({ fileType, writingMode, title, author, body });
+          savedDraft = serializeDraft();
           linkedBookmarkCount = bookmarkCount;
           linkedBookmarksDialogOpen = bookmarkCount > 0;
           isLoading = false;
         });
       } catch (error) {
         if (controller.signal.aborted) return;
-        loadError = error instanceof Error ? error.message : '小説を読み込めませんでした。';
+        loadError = getErrorMessage(error, '小説を読み込めませんでした。');
         isLoading = false;
       }
     })();
@@ -94,7 +97,7 @@
       savedDraft = savedSnapshot;
       toast.success('小説を保存しました');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '小説を保存できませんでした');
+      toast.error(getErrorMessage(error, '小説を保存できませんでした'));
     } finally {
       isSaving = false;
     }
@@ -123,19 +126,10 @@
       linkedBookmarksDialogOpen = false;
       toast.success('ブックマークを削除しました');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'ブックマークを削除できませんでした');
+      toast.error(getErrorMessage(error, 'ブックマークを削除できませんでした'));
     } finally {
       isDeletingLinkedBookmarks = false;
     }
-  };
-
-  const returnToNovelList = () => {
-    if (navigation.canGoBack) {
-      history.back();
-      return;
-    }
-
-    void goto(resolve('/'), { replaceState: true });
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -201,7 +195,7 @@
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <Button variant='outline' disabled={isDeletingLinkedBookmarks} onclick={returnToNovelList}>
+      <Button variant='outline' disabled={isDeletingLinkedBookmarks} onclick={goBackOrHome}>
         <IconChevronLeft/> 一覧に戻る
       </Button>
       <!-- Close only after the deletion succeeds, so a failure keeps the dialog open. -->

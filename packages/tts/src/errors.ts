@@ -5,3 +5,7 @@ export class TtsAbortError extends Error {
     super(message);
   }
 }
+
+export function isTtsAbortError(error: unknown): error is TtsAbortError {
+  return error instanceof TtsAbortError || (error instanceof Error && error.name === 'TtsAbortError');
+}

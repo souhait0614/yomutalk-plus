@@ -10,6 +10,7 @@
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { downloadSharedNovels, fileTypeLabels, formatByteSize, writingModeLabels } from '$lib/sharedNovels';
   import { computeContentHash } from '$lib/utils/hash';
+  import { getErrorMessage } from '$lib/utils/misc';
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { SvelteMap } from 'svelte/reactivity';
@@ -65,7 +66,7 @@
       }
       status = 'ready';
     } catch (error) {
-      errorMessage = error instanceof Error ? error.message : '共有された小説を取得できませんでした';
+      errorMessage = getErrorMessage(error, '共有された小説を取得できませんでした');
       status = 'error';
       console.error('Failed to download shared novels:', error);
     }

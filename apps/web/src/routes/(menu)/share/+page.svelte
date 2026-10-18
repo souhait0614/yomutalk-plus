@@ -6,6 +6,7 @@
   import * as Field from '$lib/shadcn-svelte/components/ui/field';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { createSharedNovelsImportUrl, uploadSharedNovels } from '$lib/sharedNovels';
+  import { getErrorMessage } from '$lib/utils/misc';
   import { stateQuery } from 'dexie-svelte-query';
   import { toast } from 'svelte-sonner';
   import { SvelteMap } from 'svelte/reactivity';
@@ -37,7 +38,7 @@
       shareUrl = createSharedNovelsImportUrl(id);
       shareUrlDialogOpen = true;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '共有URLを作成できませんでした');
+      toast.error(getErrorMessage(error, '共有URLを作成できませんでした'));
       console.error('Failed to upload shared novels:', error);
     } finally {
       isUploading = false;

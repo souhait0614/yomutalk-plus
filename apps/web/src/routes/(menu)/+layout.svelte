@@ -1,20 +1,10 @@
 <script lang='ts'>
   import { IconChevronLeft } from '@tabler/icons-svelte';
-  import { goto } from '$app/navigation';
-  import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
+  import { goBackOrHome } from '$lib/utils/navigation';
 
   const { children } = $props();
-
-  const goBack = () => {
-    if (navigation.canGoBack) {
-      history.back();
-      return;
-    }
-
-    void goto(resolve('/'), { replaceState: true });
-  };
 </script>
 
 <div
@@ -26,7 +16,7 @@
       sticky top-0 left-0 flex h-16 items-center gap-2 bg-muted px-2 py-4
       text-muted-foreground
     '>
-    <Button variant='ghost' size='icon-lg' onclick={goBack}>
+    <Button variant='ghost' size='icon-lg' onclick={goBackOrHome}>
       <IconChevronLeft/>
     </Button>
     <h1>{page.data.pageTitle}</h1>
