@@ -31,19 +31,33 @@ export interface ManuallyEnteredText {
 
 export type RegisteredText = ManuallyEnteredText | SelectedNovelText;
 
+const copyInlines = (inlines: readonly NovelInline[]): NovelInline[] => inlines.map((inline) => ({ ...inline }));
+
+const copyTextPosition = ({ blockIndex, sentenceIndex, textOffset }: NovelTextPosition): NovelTextPosition => ({
+  blockIndex,
+  sentenceIndex,
+  textOffset,
+});
+
+const copySelectionRange = (selectionRange: NovelSelectionRange): NovelSelectionRange => ({
+  start: copyTextPosition(selectionRange.start),
+  end: copyTextPosition(selectionRange.end),
+});
+
+// NOTE: stateQueryが返す$stateのプロキシはIndexedDBに保存できないため、素のオブジェクトへ複製する
 export const copyRegisteredText = (registeredText: RegisteredText): RegisteredText => {
   if (registeredText.registrationMethod === 'selection') {
     return {
       documentId: registeredText.documentId,
-      inlines: registeredText.inlines,
+      inlines: copyInlines(registeredText.inlines),
       registrationMethod: registeredText.registrationMethod,
-      selectionRange: registeredText.selectionRange,
+      selectionRange: copySelectionRange(registeredText.selectionRange),
       textType: registeredText.textType,
     };
   }
   return {
     documentId: registeredText.documentId,
-    inlines: registeredText.inlines,
+    inlines: copyInlines(registeredText.inlines),
     registrationMethod: registeredText.registrationMethod,
     selectionRange: registeredText.selectionRange,
     textType: registeredText.textType,
