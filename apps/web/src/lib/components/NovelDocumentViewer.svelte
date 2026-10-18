@@ -541,7 +541,7 @@
 
 <div
   class={cn(`
-    relative size-full scrollbar-none overscroll-none font-serif wrap-break-word
+    relative size-full scrollbar-none font-serif wrap-break-word
     [word-break:auto-phrase]
     data-[font-size="lg"]:text-lg
     data-[font-size="md"]:text-base

@@ -480,7 +480,7 @@
   {/if}
   <main
     class='absolute top-0 left-0 z-0 size-full touch-none transition-transform'
-    class:-translate-y-30={isMainShiftedUp}
+    class:-translate-y-35={isMainShiftedUp}
     onwheel={handleMainWheel}
     ontouchstart={handleMainTouchStart}
     ontouchmove={handleMainTouchMove}
@@ -501,7 +501,7 @@
             writingMode={resolvedNovelDocument.writingMode}
             highlightRange={playingSelectedText?.selectionRange}
             class={{
-              'pb-30': isFooterOverlappingMain && resolvedNovelDocument.writingMode === 'horizontal-tb',
+              'pb-35': isFooterOverlappingMain && resolvedNovelDocument.writingMode === 'horizontal-tb',
             }}
             showTitle={uiCollapsed.current}
             bind:scrollValue={getScrollValue, setScrollValue}
