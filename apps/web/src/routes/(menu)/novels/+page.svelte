@@ -236,7 +236,6 @@
             </DropdownMenu.Trigger>
             <DropdownMenu.Content align='end'>
               {#if document.type === 'file'}
-                <DropdownMenu.Item onSelect={() => void goto(resolve('/(menu)/novels/[id]', { id: document.id }))}><IconPencil/> 編集</DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => void openMetadataDialog(document)}>
                   <IconTypography/> {document.fileType === 'aozoratext' ? 'タイトル・著者名を変更' : 'ファイル名を変更'}
                 </DropdownMenu.Item>
