@@ -1,5 +1,5 @@
 <script lang='ts'>
-  import { IconBook2, IconDeviceMobileDown, IconDevices, IconFilePencil, IconMessageDots, IconMoon, IconSettings, IconShare, IconSun } from '@tabler/icons-svelte';
+  import { IconBook2, IconDeviceMobileDown, IconDevices, IconDownload, IconFilePencil, IconMessageDots, IconMoon, IconSend, IconSettings, IconSun } from '@tabler/icons-svelte';
   import { resolve } from '$app/paths';
   import NavigationItem from '$lib/components/NavigationItem.svelte';
   import { getManageLoadedNovelDocumentsDialogContext } from '$lib/contexts/manageLoadedNovelDocumentsDialog';
@@ -66,11 +66,17 @@
         {/snippet}
         小説の作成・編集
       </NavigationItem>
-      <NavigationItem href={resolve('/share')}>
+      <NavigationItem href={resolve('/share/send')}>
         {#snippet startIcon()}
-          <IconShare/>
+          <IconSend/>
         {/snippet}
-        小説の共有
+        小説を送る
+      </NavigationItem>
+      <NavigationItem href={resolve('/share/receive')}>
+        {#snippet startIcon()}
+          <IconDownload/>
+        {/snippet}
+        小説を受け取る
       </NavigationItem>
       <NavigationItem href={resolve('/settings')}>
         {#snippet startIcon()}

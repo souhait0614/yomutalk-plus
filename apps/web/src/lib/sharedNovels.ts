@@ -1,6 +1,7 @@
 import type { LoadedNovelDocument, LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
 import { apiClient } from '@repo/api/client';
-import { resolve } from '$app/paths';
+import { novelShareFileExtension, novelShareQrPrefix } from '$lib/constants';
+import { getCurrentDateString } from '$lib/utils/misc';
 import * as v from 'valibot';
 
 export const fileTypeLabels: Record<LoadedNovelDocumentFileType, string> = {
@@ -90,9 +91,26 @@ export const decodeSharedNovels = async (blob: Blob): Promise<SharedNovel[]> => 
   }));
 };
 
-/** 受け取りページの URL。共有先の端末で開くと小説を追加できる。 */
-export const createSharedNovelsImportUrl = (id: string): string => (
-  new URL(resolve(`/share/import/${encodeURIComponent(id)}`), location.origin).href
+/** 共有 ID の形式。推測できない値であればよいので、サーバー側と同じく緩く検証する。 */
+const sharedNovelIdPattern = /^[\w-]{16,64}$/;
+
+/** QR コードに載せる文字列。ほかの用途の QR コードと区別できるように接頭辞を付ける。 */
+export const createSharedNovelsQrText = (id: string): string => `${novelShareQrPrefix}${id}`;
+
+/**
+ * QR コードの文字列から共有 ID を取り出す。
+ * よむとーく＋の共有用QRコードでなければ null を返す。
+ */
+export const parseSharedNovelsQrText = (text: string): string | null => {
+  // 接頭辞のあとに余分な文字が続く QR コードは受け付けない
+  if (!text.startsWith(novelShareQrPrefix)) return null;
+  const id = text.slice(novelShareQrPrefix.length);
+  return sharedNovelIdPattern.test(id) ? id : null;
+};
+
+/** 共有ファイルの名前。バックアップファイルと同じく日付を付ける。 */
+export const createSharedNovelsFileName = (): string => (
+  `${novelShareFileExtension}-${getCurrentDateString()}.${novelShareFileExtension}`
 );
 
 export const formatByteSize = (byteLength: number): string => {
@@ -111,18 +129,17 @@ const readApiErrorMessage = async (response: Response, fallbackMessage: string):
   return fallbackMessage;
 };
 
-export const uploadSharedNovels = async (documents: LoadedNovelDocument[]): Promise<string> => {
-  const blob = await encodeSharedNovels(documents);
+export const uploadSharedNovels = async (blob: Blob): Promise<string> => {
   // Hono RPC の推奨に合わせて multipart/form-data の File として送る (ファイル名はサーバーでは使わない)
   const response = await apiClient['shared-novels'].$post({
     form: { file: new File([blob], 'shared-novels.bin', { type: blob.type }) },
   });
   if (!response.ok) {
-    throw new Error(await readApiErrorMessage(response, '共有URLを作成できませんでした'));
+    throw new Error(await readApiErrorMessage(response, '共有の準備ができませんでした'));
   }
 
   const body = await response.json() as { id?: unknown; };
-  if (typeof body.id !== 'string') throw new Error('共有URLを作成できませんでした');
+  if (typeof body.id !== 'string') throw new Error('共有の準備ができませんでした');
   return body.id;
 };
 

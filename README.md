@@ -77,13 +77,19 @@ VOICEVOX_ENGINE_API_BEARER_TOKEN=...
 
 ### 小説の共有
 
-`/share` で選択した小説を 1 ファイルにまとめて圧縮し、Cloudflare R2 へアップロードします。
-発行される URL（`/share/import/<id>`）を開くと、共有された小説を確認してから端末へ追加できます。
+`/share/send`（小説を送る）で選択した小説を 1 ファイルにまとめて圧縮し、Cloudflare R2 へアップロードします。
+アップロード後は次の 2 通りの方法で送り先の端末へ渡せます。
+
+- QR コード: `yomutalk-plus-share:<id>` 形式の文字列を表示します。送り先の端末は `/share/receive`（小説を受け取る）でカメラから読み取ります。
+- 小説ファイル: `yomutalk-plus-novel-<日付>.yomutalk-plus-novel` をダウンロードするか、端末の共有メニュー（Web Share API が使える場合のみ）で共有します。送り先の端末は同じ画面でファイルを選択します。
+
+受け取り側では、追加済みでない小説だけを選んで端末へ保存できます。
 
 - R2 バケット `yomutalk-shared-files` を用意し、`apps/web/wrangler.jsonc` の `r2_buckets` で `SHARED_FILES` としてバインドします。
-- バケットには有効期限 1 日のライフサイクルルールを設定してください（共有 URL の有効期限はこのルールに依存します）。
+- バケットには有効期限 1 日のライフサイクルルールを設定してください（QR コードの有効期限はこのルールに依存します）。
 - バインディングが無い場合、共有 API は 503 を返します。
 - 開発サーバーでも `@sveltejs/adapter-cloudflare` の `platformProxy` が `wrangler.jsonc` を読んでバインディングをエミュレートします（状態は `apps/web/.wrangler` に保存されます）。
+- QR コードの読み取りには `zxing-wasm` を使います。wasm は jsDelivr ではなくアプリと同じ配信元（ハッシュ付きアセット）から読み込むため、CDN に依存しません。受け取りには共有 API への接続が必要なので、wasm は PWA のプレキャッシュには含めていません。
 
 ## ビルドとデプロイ
 

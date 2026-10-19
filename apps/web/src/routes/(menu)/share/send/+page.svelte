@@ -5,13 +5,13 @@
   import { Checkbox } from '$lib/shadcn-svelte/components/ui/checkbox';
   import * as Field from '$lib/shadcn-svelte/components/ui/field';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
-  import { createSharedNovelsImportUrl, uploadSharedNovels } from '$lib/sharedNovels';
+  import { encodeSharedNovels, uploadSharedNovels } from '$lib/sharedNovels';
   import { getErrorMessage } from '$lib/utils/misc';
   import { stateQuery } from 'dexie-svelte-query';
   import { toast } from 'svelte-sonner';
   import { SvelteMap } from 'svelte/reactivity';
 
-  import ShareUrlDialog from './_components/ShareUrlDialog.svelte';
+  import ShareNovelsDialog from './_components/ShareNovelsDialog.svelte';
 
   const loadedNovelDocumentsQuery = stateQuery(getLoadedNovelDocuments);
   const filteredLoadedNovelDocuments = $derived(
@@ -23,34 +23,37 @@
   const selectedIds = new SvelteMap<string, boolean>();
   const selectedCount = $derived([...selectedIds.values()].filter((selected) => selected).length);
 
-  let isUploading = $state(false);
-  let shareUrlDialogOpen = $state(false);
-  let shareUrl = $state('');
+  let isPreparing = $state(false);
+  let shareDialogOpen = $state(false);
+  let sharedNovelsId = $state('');
+  let sharedNovelsBlob = $state.raw<Blob>();
 
   const handleClickShareButton = async () => {
-    if (isUploading) return;
+    if (isPreparing) return;
     const documents = filteredLoadedNovelDocuments.filter(({ id }) => selectedIds.get(id) === true);
     if (documents.length === 0) return;
 
-    isUploading = true;
+    isPreparing = true;
     try {
-      const id = await uploadSharedNovels(documents);
-      shareUrl = createSharedNovelsImportUrl(id);
-      shareUrlDialogOpen = true;
+      // サーバーに預ける分と渡す分は同じ中身なので、一度だけ符号化する
+      const blob = await encodeSharedNovels(documents);
+      sharedNovelsId = await uploadSharedNovels(blob);
+      sharedNovelsBlob = blob;
+      shareDialogOpen = true;
     } catch (error) {
-      toast.error(getErrorMessage(error, '共有URLを作成できませんでした'));
-      console.error('Failed to upload shared novels:', error);
+      toast.error(getErrorMessage(error, '共有の準備ができませんでした'));
+      console.error('Failed to prepare shared novels:', error);
     } finally {
-      isUploading = false;
+      isPreparing = false;
     }
   };
 </script>
 
 <div class='flex flex-col gap-4'>
   <Field.Set>
-    <Field.Legend>共有する小説を選択</Field.Legend>
+    <Field.Legend>送る小説を選択</Field.Legend>
     <Field.Description>
-      共有する小説を1つ以上選択してください
+      送る小説を1つ以上選択してください
     </Field.Description>
     <Field.Group class='gap-4'>
       {#each filteredLoadedNovelDocuments as loadedNovelDocument (loadedNovelDocument.id)}
@@ -62,28 +65,28 @@
             <Field.Content>
               <Field.Title>{loadedNovelDocument.title}</Field.Title>
               {#if loadedNovelDocument.type === 'file' && loadedNovelDocument.isEditLocked}
-                <Field.Description>編集ロック中（共有先にも引き継がれます）</Field.Description>
+                <Field.Description>編集ロック中（送り先にも引き継がれます）</Field.Description>
               {/if}
             </Field.Content>
           </Field.Field>
         </Field.Label>
       {:else}
-        <p class='text-sm text-muted-foreground'>共有できる小説がありません。</p>
+        <p class='text-sm text-muted-foreground'>送れる小説がありません。</p>
       {/each}
     </Field.Group>
   </Field.Set>
   <div class='flex justify-end'>
     <Button
-      disabled={selectedCount === 0 || isUploading}
+      disabled={selectedCount === 0 || isPreparing}
       size='lg'
       onclick={() => void handleClickShareButton()}>
-      {#if isUploading}
-        <Spinner/> 共有URLを作成中…
+      {#if isPreparing}
+        <Spinner/> 準備中…
       {:else}
-        <IconShare/> 共有
+        <IconShare/> 送る
       {/if}
     </Button>
   </div>
 </div>
 
-<ShareUrlDialog bind:open={shareUrlDialogOpen} url={shareUrl}/>
+<ShareNovelsDialog bind:open={shareDialogOpen} id={sharedNovelsId} blob={sharedNovelsBlob}/>
