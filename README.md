@@ -107,7 +107,7 @@ pnpm exec wrangler deploy
 
 対象は `apps/web` と、`apps/web` が依存する機能パッケージ（`packages/api`、`packages/assets`、`packages/novel-parser`、`packages/tts`）です。パッケージごとに独立したリリース PR が出るため、任意のパッケージだけをリリースできます。
 
-- 設定は [release-please-config.json](release-please-config.json) と [.release-please-manifest.json](.release-please-manifest.json) です。
+- 設定は [.github/release-please/config.json](.github/release-please/config.json) と [.github/release-please/manifest.json](.github/release-please/manifest.json) です。
 - 初回リリースのバージョンは `1.0.0`（`initial-version`）で、タグは `web-v1.0.0`、`tts-v1.0.0` のようになります。
 - リリース対象になるのは `feat`（マイナー）、`fix`・`perf`・`revert`（パッチ）、および `!` や `BREAKING CHANGE` を伴うコミット（メジャー）です。`chore`・`docs`・`style`・`refactor`・`test`・`build`・`ci` は変更履歴に載らず、これらだけの変更ではリリース PR が作成されません。コミットメッセージは [commitlint.config.ts](commitlint.config.ts) で検証される形式で書いてください。
 - `node-workspace` プラグインにより、依存するパッケージが更新されると、それを参照するパッケージ（`apps/web` など）のリリース PR も作成されます。

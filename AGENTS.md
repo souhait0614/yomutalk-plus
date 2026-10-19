@@ -50,7 +50,7 @@
 
 ## Release
 
-Releases are managed by Release Please (`.github/workflows/release-please.yaml`, `release-please-config.json`, `.release-please-manifest.json`) from conventional commits pushed to `main`. Each configured package (`apps/web`, `packages/api`, `packages/assets`, `packages/novel-parser`, `packages/tts`) gets its own release PR, `CHANGELOG.md`, and `<component>-v<version>` tag (`separate-pull-requests`), so packages can be released independently. The component is the package name with the npm scope stripped, so `@repo/tts` tags as `tts-v<version>`.
+Releases are managed by Release Please (`.github/workflows/release-please.yaml`, `.github/release-please/config.json`, `.github/release-please/manifest.json`) from conventional commits pushed to `main`. Each configured package (`apps/web`, `packages/api`, `packages/assets`, `packages/novel-parser`, `packages/tts`) gets its own release PR, `CHANGELOG.md`, and `<component>-v<version>` tag (`separate-pull-requests`), so packages can be released independently. The component is the package name with the npm scope stripped, so `@repo/tts` tags as `tts-v<version>`.
 
 - The node strategy writes the version into each package's own `package.json`, so the version shown in the settings page of `apps/web` follows releases with no extra wiring.
 - The `node-workspace` plugin releases dependents when a local dependency is released. `workspace:*` ranges are left untouched, because release-please skips dependency ranges that start with a protocol (`workspace:`).
