@@ -1,10 +1,14 @@
 <script lang='ts'>
+  import { pwaInstallBypassed } from '$lib/appSettings.svelte';
   import PwaInstallGuideDialog from '$lib/components/PwaInstallGuideDialog.svelte';
+  import { pwaInstallation } from '$lib/pwaInstallation.svelte';
   import { pwaUpdate } from '$lib/pwaUpdate.svelte';
   import { Toaster } from '$lib/shadcn-svelte/components/ui/sonner';
   import * as Tooltip from '$lib/shadcn-svelte/components/ui/tooltip';
   import { mode, ModeWatcher } from 'mode-watcher';
   import { onMount } from 'svelte';
+
+  import PwaInstallScreen from './-components/PwaInstallScreen.svelte';
 
   import '../app.css';
 
@@ -26,9 +30,13 @@
 <ModeWatcher {themeColors}/>
 <Toaster position='top-right'/>
 <PwaInstallGuideDialog/>
-<Tooltip.Provider>
-  {@render children()}
-</Tooltip.Provider>
+{#if pwaInstallation.requiresInstallation && !pwaInstallBypassed.current}
+  <PwaInstallScreen/>
+{:else}
+  <Tooltip.Provider>
+    {@render children()}
+  </Tooltip.Provider>
+{/if}
 
 <!-- TODO: 消したい -->
 <!-- NOTE: IOS 27 Blur Fix Hack -->

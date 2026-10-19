@@ -12,11 +12,21 @@ export interface PwaInstallGuide {
 
 const STANDALONE_DISPLAY_MODES = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay'];
 
+const SMARTPHONE_OS_NAMES = ['Android', 'Windows Phone', 'KaiOS'];
+
+// iPadOS 13 以降は macOS として報告されるため、タッチ操作の有無で判定する。
+const isIosOs = (osName: string) => osName === 'iOS' || (osName === 'macOS' && navigator.maxTouchPoints > 1);
+
+const isSmartphoneOs = (parser: ReturnType<typeof Bowser.getParser>) => {
+  const osName = parser.getOSName();
+  return isIosOs(osName) || SMARTPHONE_OS_NAMES.includes(osName);
+};
+
 const detectGuide = (): PwaInstallGuide => {
   const parser = Bowser.getParser(navigator.userAgent);
   const osName = parser.getOSName();
   const browserName = parser.getBrowserName();
-  const isIos = osName === 'iOS' || (osName === 'macOS' && navigator.maxTouchPoints > 1);
+  const isIos = isIosOs(osName);
 
   if (isIos) {
     if (browserName === 'Safari') {
@@ -88,6 +98,7 @@ const detectGuide = (): PwaInstallGuide => {
 
 class PwaInstallation {
   standalone = $state(false);
+  smartphone = $state(false);
   #deferredPrompt = $state<BeforeInstallPromptEvent>();
   guideOpen = $state(false);
   guide = $state<PwaInstallGuide>({ description: '', steps: [] });
@@ -111,7 +122,16 @@ class PwaInstallation {
       this.#deferredPrompt = undefined;
     });
 
+    this.smartphone = isSmartphoneOs(Bowser.getParser(navigator.userAgent));
     this.guide = detectGuide();
+  }
+
+  get canInstall() {
+    return this.#deferredPrompt !== undefined;
+  }
+
+  get requiresInstallation() {
+    return this.smartphone && !this.standalone;
   }
 
   async install() {
