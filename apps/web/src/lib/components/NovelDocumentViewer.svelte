@@ -8,6 +8,7 @@
   import { browser } from '$app/environment';
   import { novelDocumentViewFontSize } from '$lib/appSettings.svelte';
   import NovelInlineContent from '$lib/components/NovelInlineContent.svelte';
+  import { m } from '$lib/paraglide/messages';
   import { twFade } from '$lib/transitions';
   import { getNovelInlinesTextLength, resolveSentenceHighlightRange } from '$lib/utils/novelInlines';
   import { cn } from 'cn';
@@ -554,7 +555,7 @@
   style:overflow-y={scrollDirection === 'vertical' ? 'auto' : 'hidden'}
   dir={containerDir}
   role='region'
-  aria-label='小説本文'
+  aria-label={m.viewer_novel_content()}
   onscroll={onScroll}
   onscrollend={saveMeasurements}
   onpointerdown={cancelScrollToPosition}

@@ -4,6 +4,7 @@
   import { parseAozoraText, parsePlainText } from '@repo/novel-parser';
   import { IconEye, IconPencil } from '@tabler/icons-svelte';
   import NovelDocumentViewer from '$lib/components/NovelDocumentViewer.svelte';
+  import { m } from '$lib/paraglide/messages';
   import * as InputGroup from '$lib/shadcn-svelte/components/ui/input-group';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import * as Tabs from '$lib/shadcn-svelte/components/ui/tabs';
@@ -67,7 +68,7 @@
   $effect(() => {
     const nextSource = source;
     const nextBody = body;
-    const nextTitle = title.trim() || '無題';
+    const nextTitle = title.trim() || m.novel_untitled();
     const nextFileType = fileType;
     previewPending = true;
     const timer = setTimeout(() => {
@@ -107,7 +108,7 @@
     let selectionStart: number;
     let selectionEnd: number;
     if (insertion.kind === 'heading') {
-      const content = body.slice(start, end) || '見出し';
+      const content = body.slice(start, end) || m.editor_heading();
       replacement = content.split('\n').map((line) => (line ? `${line}［＃「${line}」は${insertion.level}見出し］` : '')).join('\n');
       selectionStart = start;
       selectionEnd = start + replacement.length;
@@ -150,7 +151,7 @@
 {#snippet inputPane()}
   <InputGroup.Root>
     <InputGroup.Textarea
-      aria-label='本文'
+      aria-label={m.editor_body()}
       style='writing-mode:horizontal-tb'
       spellcheck={false}
       {disabled}
@@ -164,8 +165,8 @@
       <NovelTextToolbar {fileType} {disabled} oninsert={(insertion) => void insertText(insertion)}/>
     </InputGroup.Addon>
     <InputGroup.Addon align='block-end' class='border-t'>
-      <InputGroup.Text>{body.length.toLocaleString()}文字</InputGroup.Text>
-      <InputGroup.Text>{body.split('\n').length.toLocaleString()}行</InputGroup.Text>
+      <InputGroup.Text>{m.editor_char_count({ count: body.length.toLocaleString() })}</InputGroup.Text>
+      <InputGroup.Text>{m.editor_line_count({ count: body.split('\n').length.toLocaleString() })}</InputGroup.Text>
     </InputGroup.Addon>
   </InputGroup.Root>
 {/snippet}
@@ -173,9 +174,9 @@
 {#snippet previewPane()}
   <section
     class='flex flex-col overflow-hidden rounded-3xl border'
-    aria-label='プレビュー'>
+    aria-label={m.editor_preview()}>
     <div class='flex items-center gap-2 p-3 text-sm text-muted-foreground'>
-      <IconEye class='size-4'/> プレビュー
+      <IconEye class='size-4'/> {m.editor_preview()}
       {#if previewPending}<Spinner class='ml-auto size-4'/>{/if}
     </div>
     <div class='relative min-h-0 flex-1'>
@@ -192,7 +193,7 @@
           class='
             flex h-full items-center justify-center text-sm
             text-muted-foreground
-          '>本文がありません。</p>
+          '>{m.editor_no_body()}</p>
       {/if}
     </div>
   </section>
@@ -209,8 +210,8 @@
     class='grid grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-2'
     data-editor-layout='tabs'>
     <Tabs.List class='w-full'>
-      <Tabs.Trigger value='input'><IconPencil class='size-4'/> 本文</Tabs.Trigger>
-      <Tabs.Trigger value='preview'><IconEye class='size-4'/> プレビュー</Tabs.Trigger>
+      <Tabs.Trigger value='input'><IconPencil class='size-4'/> {m.editor_body()}</Tabs.Trigger>
+      <Tabs.Trigger value='preview'><IconEye class='size-4'/> {m.editor_preview()}</Tabs.Trigger>
     </Tabs.List>
     <Tabs.Content value='input' class='grid grid-cols-1 grid-rows-1'>
       {@render inputPane()}

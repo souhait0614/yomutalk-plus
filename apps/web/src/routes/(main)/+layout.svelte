@@ -2,6 +2,7 @@
   import { setInternalNovelUpdateContext } from '$lib/contexts/internalNovelUpdate';
   import { getLoadedNovelDocuments, updateLoadedInternalNovelDocument } from '$lib/db';
   import { downloadInternalNovel, fetchInternalNovelHash } from '$lib/internalNovels';
+  import { m } from '$lib/paraglide/messages';
   import { stateQuery } from 'dexie-svelte-query';
   import { toast } from 'svelte-sonner';
   import { SvelteSet } from 'svelte/reactivity';
@@ -50,9 +51,9 @@
         hash,
       });
       updatedDocumentIds.delete(documentId);
-      toast.success(`「${document.title}」を更新しました`);
+      toast.success(m.library_updated_novel({ title: document.title }));
     } catch {
-      toast.error('アプリ内蔵小説の更新に失敗しました');
+      toast.error(m.library_update_built_in_failed());
     } finally {
       updatingDocumentIds.delete(documentId);
     }

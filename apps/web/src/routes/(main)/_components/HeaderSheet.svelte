@@ -4,6 +4,7 @@
   import NavigationItem from '$lib/components/NavigationItem.svelte';
   import { getManageLoadedNovelDocumentsDialogContext } from '$lib/contexts/manageLoadedNovelDocumentsDialog';
   import { getManageSelectedTextsDialogContext } from '$lib/contexts/manageSelectedTextsDialog';
+  import { m } from '$lib/paraglide/messages';
   import { pwaInstallation } from '$lib/pwaInstallation.svelte';
   import { buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
   import * as DropdownMenu from '$lib/shadcn-svelte/components/ui/dropdown-menu';
@@ -24,7 +25,7 @@
 <Sheet.Root bind:open>
   <Sheet.Content side='left'>
     <Sheet.Header>
-      <Sheet.Title>よむとーく＋</Sheet.Title>
+      <Sheet.Title>{m.app_name()}</Sheet.Title>
     </Sheet.Header>
     <div class='flex flex-col gap-2 overflow-y-auto px-2'>
       {#if !pwaInstallation.standalone}
@@ -36,7 +37,7 @@
           {#snippet startIcon()}
             <IconDeviceMobileDown/>
           {/snippet}
-          ホーム画面に追加
+          {m.pwa_add_to_home_screen()}
         </NavigationItem>
         <Separator/>
       {/if}
@@ -48,7 +49,7 @@
         {#snippet startIcon()}
           <IconMessageDots/>
         {/snippet}
-        読み上げ管理・設定
+        {m.nav_tts_manage()}
       </NavigationItem>
       <NavigationItem
         onclick={() => {
@@ -58,31 +59,31 @@
         {#snippet startIcon()}
           <IconBook2/>
         {/snippet}
-        小説管理・設定
+        {m.nav_library_manage()}
       </NavigationItem>
       <NavigationItem href={resolve('/(menu)/novels')}>
         {#snippet startIcon()}
           <IconFilePencil/>
         {/snippet}
-        小説の作成・編集
+        {m.nav_novel_editor()}
       </NavigationItem>
       <NavigationItem href={resolve('/share/send')}>
         {#snippet startIcon()}
           <IconSend/>
         {/snippet}
-        小説を送る
+        {m.nav_share_send()}
       </NavigationItem>
       <NavigationItem href={resolve('/share/receive')}>
         {#snippet startIcon()}
           <IconDownload/>
         {/snippet}
-        小説を受け取る
+        {m.nav_share_receive()}
       </NavigationItem>
       <NavigationItem href={resolve('/settings')}>
         {#snippet startIcon()}
           <IconSettings/>
         {/snippet}
-        アプリ設定
+        {m.nav_app_settings()}
       </NavigationItem>
     </div>
     <Sheet.Footer>
@@ -93,10 +94,10 @@
               <IconDevices/>
             {:else if userPrefersMode.current === 'light'}
               <IconSun/>
-            {:else if userPrefersMode.current === 'dark'}
+            {:else}
               <IconMoon/>
             {/if}
-            テーマ
+            {m.settings_theme()}
           </DropdownMenu.Trigger>
           <DropdownMenu.Content class='w-32'>
             <DropdownMenu.Group>
@@ -111,9 +112,9 @@
                     setMode('dark');
                   }
                 }}>
-                <DropdownMenu.RadioItem value='system'><IconDevices/> システムに追従</DropdownMenu.RadioItem>
-                <DropdownMenu.RadioItem value='light'><IconSun/> ライト</DropdownMenu.RadioItem>
-                <DropdownMenu.RadioItem value='dark'><IconMoon/> ダーク</DropdownMenu.RadioItem>
+                <DropdownMenu.RadioItem value='system'><IconDevices/> {m.theme_system()}</DropdownMenu.RadioItem>
+                <DropdownMenu.RadioItem value='light'><IconSun/> {m.theme_light()}</DropdownMenu.RadioItem>
+                <DropdownMenu.RadioItem value='dark'><IconMoon/> {m.theme_dark()}</DropdownMenu.RadioItem>
               </DropdownMenu.RadioGroup>
             </DropdownMenu.Group>
           </DropdownMenu.Content>

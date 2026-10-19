@@ -4,6 +4,7 @@
   import { getAddLoadedNovelDocumentDialogContext } from '$lib/contexts/addLoadedNovelDocumentDialog';
   import { getInternalNovelUpdateContext } from '$lib/contexts/internalNovelUpdate';
   import { getManageLoadedNovelDocumentsDialogContext } from '$lib/contexts/manageLoadedNovelDocumentsDialog';
+  import { m } from '$lib/paraglide/messages';
   import { pwaUpdate } from '$lib/pwaUpdate.svelte';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
   import * as NativeSelect from '$lib/shadcn-svelte/components/ui/native-select';
@@ -47,7 +48,7 @@
         <Button
           variant='outline'
           size='icon-lg'
-          aria-label='メニューを開く'
+          aria-label={m.header_open_menu()}
           onclick={() => (isOpenHeaderSheet = true)}>
           <IconMenu2/>
         </Button>
@@ -57,7 +58,7 @@
           {#if narrowViewport}
             <NativeSelect.Root
               class='min-w-0 flex-1'
-              aria-label='小説を切り替える'
+              aria-label={m.header_switch_novel()}
               bind:value={() => currentTabIndex.toString(),
                 (v) => (currentTabIndex = parseInt(v))}>
               {#each loadedNovelDocuments as loadedNovelDocument, index (loadedNovelDocument.id)}
@@ -87,7 +88,7 @@
                 <Button
                   variant='ghost'
                   size='icon'
-                  aria-label='小説を追加'
+                  aria-label={m.nav_add_novel()}
                   {...props}
                   onclick={() => addLoadedNovelDocumentDialog.open()}>
                   <IconPlus/>
@@ -95,7 +96,7 @@
               {/snippet}
             </Tooltip.Trigger>
             <Tooltip.Content>
-              <p>小説を追加</p>
+              <p>{m.nav_add_novel()}</p>
             </Tooltip.Content>
           </Tooltip.Root>
         {:else}
@@ -103,7 +104,7 @@
             variant='default'
             size='sm'
             onclick={() => addLoadedNovelDocumentDialog.open()}>
-            <IconPlus/> 小説を追加
+            <IconPlus/> {m.nav_add_novel()}
           </Button>
         {/if}
       </div>
@@ -112,7 +113,7 @@
           <Button
             variant='default'
             onclick={() => manageLoadedNovelDocumentsDialog.open()}>
-            小説の更新あり
+            {m.novel_update_available()}
           </Button>
         </div>
       {/if}
@@ -121,7 +122,7 @@
           <Button
             variant='default'
             onclick={() => pwaUpdate.applyUpdate()}>
-            アプリの更新あり
+            {m.app_update_available()}
           </Button>
         </div>
       {/if}

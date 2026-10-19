@@ -5,6 +5,7 @@
   import { beforeNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
   import { appDatabase, countBookmarksByDocumentId, deleteBookmarksByDocumentId, updateLoadedNovelDocumentFromFile } from '$lib/db';
+  import { m } from '$lib/paraglide/messages';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
@@ -39,7 +40,7 @@
   const hasUnsavedChanges = $derived(!isLoading && !loadError && draft !== savedDraft);
   const canSave = $derived(!isLoading && !isSaving && !!originalDocument && !!title.trim() && hasUnsavedChanges);
   const source = $derived(fileType === 'aozoratext'
-    ? composeAozoraText({ title: title.trim() || '無題', author: author.trim() || null, body, header })
+    ? composeAozoraText({ title: title.trim() || m.novel_untitled(), author: author.trim() || null, body, header })
     : body);
 
   $effect(() => {
@@ -51,11 +52,11 @@
     linkedBookmarksDialogOpen = false;
     void (async () => {
       try {
-        if (!id) throw new Error('小説が見つかりません。');
+        if (!id) throw new Error(m.novel_not_found());
         const document = await appDatabase.loadedNovelDocuments.get(id);
-        if (!document) throw new Error('小説が見つかりません。削除されている可能性があります。');
-        if (document.type === 'internal') throw new Error('アプリ内蔵小説は編集できません。');
-        if (document.isEditLocked) throw new Error('この小説は編集がロックされています。');
+        if (!document) throw new Error(m.novel_not_found_or_deleted());
+        if (document.type === 'internal') throw new Error(m.editor_internal_not_editable());
+        if (document.isEditLocked) throw new Error(m.editor_edit_locked());
         const [text, bookmarkCount] = await Promise.all([
           decodeTextFile(document.fileData),
           countBookmarksByDocumentId(document.id),
@@ -77,7 +78,7 @@
         });
       } catch (error) {
         if (controller.signal.aborted) return;
-        loadError = getErrorMessage(error, '小説を読み込めませんでした。');
+        loadError = getErrorMessage(error, m.editor_load_failed());
         isLoading = false;
       }
     })();
@@ -94,9 +95,9 @@
       await updateLoadedNovelDocumentFromFile(id, fileType, file, writingMode, originalDocument.hash);
       originalDocument = await appDatabase.loadedNovelDocuments.get(id);
       savedDraft = savedSnapshot;
-      toast.success('小説を保存しました');
+      toast.success(m.editor_saved());
     } catch (error) {
-      toast.error(getErrorMessage(error, '小説を保存できませんでした'));
+      toast.error(getErrorMessage(error, m.editor_save_failed()));
     } finally {
       isSaving = false;
     }
@@ -123,9 +124,9 @@
     try {
       await deleteBookmarksByDocumentId(originalDocument.id);
       linkedBookmarksDialogOpen = false;
-      toast.success('ブックマークを削除しました');
+      toast.success(m.bookmark_deleted());
     } catch (error) {
-      toast.error(getErrorMessage(error, 'ブックマークを削除できませんでした'));
+      toast.error(getErrorMessage(error, m.bookmark_delete_failed()));
     } finally {
       isDeletingLinkedBookmarks = false;
     }
@@ -142,22 +143,26 @@
 <svelte:window onkeydown={onKeyDown}/>
 
 {#if isLoading}
-  <div class='flex justify-center py-16' role='status' aria-label='小説を読み込み中'><Spinner/></div>
+  <div class='flex justify-center py-16' role='status' aria-label={m.editor_loading()}><Spinner/></div>
 {:else if loadError}
   <div class='flex flex-col items-center gap-4 py-16'>
     <p role='alert'>{loadError}</p>
-    <Button variant='outline' onclick={() => window.location.reload()}><IconReload/> 再読み込み</Button>
+    <Button variant='outline' onclick={() => window.location.reload()}><IconReload/> {m.common_reload()}</Button>
   </div>
 {:else}
   <div class='grid size-full grid-rows-[auto_minmax(0,1fr)] gap-2'>
     <div class='flex items-center justify-end gap-2'>
       <div class='flex items-center gap-3'>
         <span class='flex items-center gap-1 text-xs text-muted-foreground' role='status'>
-          {#if hasUnsavedChanges}未保存{:else}<IconCheck class='size-3'/> 保存済み{/if}
+          {#if hasUnsavedChanges}
+            {m.editor_unsaved()}
+          {:else}
+            <IconCheck class='size-3'/> {m.editor_saved_badge()}
+          {/if}
         </span>
         <Button disabled={!canSave} onclick={() => void save()}>
           {#if isSaving}<Spinner/>{:else}<IconDeviceFloppy/>{/if}
-          保存
+          {m.common_save()}
         </Button>
       </div>
     </div>
@@ -174,12 +179,12 @@
 <AlertDialog.Root bind:open={discardDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>変更を破棄しますか？</AlertDialog.Title>
-      <AlertDialog.Description>保存していない変更があります。移動すると変更は失われます。</AlertDialog.Description>
+      <AlertDialog.Title>{m.editor_discard_title()}</AlertDialog.Title>
+      <AlertDialog.Description>{m.editor_discard_description()}</AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel>編集を続ける</AlertDialog.Cancel>
-      <AlertDialog.Action variant='destructive' onclick={discardChanges}>変更を破棄して移動</AlertDialog.Action>
+      <AlertDialog.Cancel>{m.editor_keep_editing()}</AlertDialog.Cancel>
+      <AlertDialog.Action variant='destructive' onclick={discardChanges}>{m.editor_discard_and_leave()}</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>
@@ -187,19 +192,19 @@
 <AlertDialog.Root bind:open={linkedBookmarksDialogOpen}>
   <AlertDialog.Content escapeKeydownBehavior='ignore'>
     <AlertDialog.Header>
-      <AlertDialog.Title>この小説にはブックマークがあります</AlertDialog.Title>
+      <AlertDialog.Title>{m.editor_bookmarks_title()}</AlertDialog.Title>
       <AlertDialog.Description>
-        本文を編集するとブックマークの位置がずれるため、この小説のブックマーク（{linkedBookmarkCount}件）を削除する必要があります。削除は取り消せません。
+        {m.editor_bookmarks_description({ count: linkedBookmarkCount })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
       <Button variant='outline' disabled={isDeletingLinkedBookmarks} onclick={goBackOrHome}>
-        <IconChevronLeft/> 一覧に戻る
+        <IconChevronLeft/> {m.editor_back_to_list()}
       </Button>
       <!-- Close only after the deletion succeeds, so a failure keeps the dialog open. -->
       <Button variant='destructive' disabled={isDeletingLinkedBookmarks} onclick={() => void deleteLinkedBookmarks()}>
         {#if isDeletingLinkedBookmarks}<Spinner/>{:else}<IconTrash/>{/if}
-        ブックマークを削除して編集
+        {m.editor_delete_bookmarks_and_edit()}
       </Button>
     </AlertDialog.Footer>
   </AlertDialog.Content>

@@ -9,6 +9,7 @@
   import { autoStartPlayback, ttsPreset } from '$lib/appSettings.svelte';
   import NovelInlineContent from '$lib/components/NovelInlineContent.svelte';
   import { defaultTtsPresetKey } from '$lib/constants';
+  import { m } from '$lib/paraglide/messages';
   import { Badge } from '$lib/shadcn-svelte/components/ui/badge';
   import {
     Button,
@@ -66,7 +67,7 @@
     }
   };
 
-  const defaultTtsPresetLabel = $derived(`デフォルト (${defaultTtsPreset?.preset.name})`);
+  const defaultTtsPresetLabel = $derived(m.tts_default_preset({ preset: defaultTtsPreset?.preset.name ?? '' }));
 
   const handleAddSelectedTextFormSubmit = (event: SubmitEvent) => {
     event.preventDefault();
@@ -83,7 +84,7 @@
       sm:max-w-2xl
     '>
     <Dialog.Header>
-      <Dialog.Title>読み上げ管理・設定</Dialog.Title>
+      <Dialog.Title>{m.tts_manage()}</Dialog.Title>
     </Dialog.Header>
     <div class='flex grow flex-col overflow-y-auto rounded-2xl border'>
       {#if selectedTextEntries.length > 0}
@@ -105,15 +106,15 @@
                     </Item.Title>
                     {#if selectedText.status === 'preparing'}
                       <Item.Description class='shimmer'>
-                        準備中
+                        {m.tts_state_preparing()}
                       </Item.Description>
                     {:else if selectedText.status === 'prepared'}
                       <Item.Description>
-                        準備完了
+                        {m.tts_state_ready()}
                       </Item.Description>
                     {:else}
                       <Item.Description class='text-destructive'>
-                        準備に失敗しました
+                        {m.tts_state_failed()}
                       </Item.Description>
                     {/if}
                   </Item.Content>
@@ -121,14 +122,14 @@
                     <Button
                       size='icon'
                       variant='outline'
-                      aria-label='ブックマークに追加'
+                      aria-label={m.bookmark_add()}
                       onclick={() => onClickAddBookmarkButton(selectedTextId)}>
                       <BookmarkPlus/>
                     </Button>
                     <Button
                       size='icon'
                       variant='outline'
-                      aria-label='削除'
+                      aria-label={m.common_delete()}
                       onclick={() => onClickDeleteButton(selectedTextId)}>
                       <IconTrash/>
                     </Button>
@@ -140,7 +141,7 @@
         </ol>
       {:else}
         <p class='px-4 py-8 text-center text-muted-foreground'>
-          読み上げる文章はありません。
+          {m.tts_no_texts()}
         </p>
       {/if}
       <div
@@ -153,7 +154,7 @@
             variant='destructive'
             onclick={onClickDeleteAllButton}
             disabled={selectedTextEntries.length === 0}>
-            <IconTrash/> 一括削除
+            <IconTrash/> {m.tts_delete_all()}
           </Button>
         </div>
         <div class='flex items-center gap-2'>
@@ -161,26 +162,26 @@
             bind:open={openAddSelectedTextDialog}
             onOpenChangeComplete={() => (addSelectedTextInput = '')}>
             <Dialog.Trigger class={buttonVariants({ variant: 'outline' })}>
-              <IconKeyboard/> 文字入力
+              <IconKeyboard/> {m.tts_manual_input()}
             </Dialog.Trigger>
             <Dialog.Content>
               <Dialog.Header>
-                <Dialog.Title>文字入力</Dialog.Title>
+                <Dialog.Title>{m.tts_manual_input()}</Dialog.Title>
                 <Dialog.Description>
-                  入力した文字を読み上げに登録します
+                  {m.tts_manual_input_description()}
                 </Dialog.Description>
               </Dialog.Header>
               <form class='contents' onsubmit={handleAddSelectedTextFormSubmit}>
                 <Input bind:value={addSelectedTextInput}/>
                 <Dialog.Footer>
                   <Dialog.Close class={buttonVariants({ variant: 'outline' })}>
-                    キャンセル
+                    {m.common_cancel()}
                   </Dialog.Close>
                   <Button
                     variant='default'
                     type='submit'
                     disabled={!addSelectedTextInput.trim()}>
-                    登録
+                    {m.tts_register()}
                   </Button>
                 </Dialog.Footer>
               </form>
@@ -188,7 +189,7 @@
           </Dialog.Root>
           <Button
             size='icon'
-            aria-label={isPlaying ? '停止' : '再生'}
+            aria-label={isPlaying ? m.tts_stop() : m.tts_play()}
             onclick={onClickPlayButton}
             disabled={selectedTextEntries.length === 0}>
             {#if isPlaying}
@@ -202,16 +203,16 @@
     </div>
     <Field.Group>
       <Field.Set>
-        <Field.Legend>設定</Field.Legend>
+        <Field.Legend>{m.tts_settings()}</Field.Legend>
         <Field.Group>
           <Field.Field orientation='responsive'>
-            <Field.Label for='ttsPreset'>読み上げ音声</Field.Label>
+            <Field.Label for='ttsPreset'>{m.tts_voice()}</Field.Label>
             <NativeSelect
               id='ttsPreset'
               size='sm'
               bind:value={getTtsPreset, setTtsPreset}
-              aria-label='読み上げ音声'>
-              <NativeSelectOptGroup label='デフォルト'>
+              aria-label={m.tts_voice()}>
+              <NativeSelectOptGroup label={m.tts_default()}>
                 <NativeSelectOption value=''>{defaultTtsPresetLabel}</NativeSelectOption>
               </NativeSelectOptGroup>
               {#each ttsPresetGroups as group (group.module.id)}
@@ -227,9 +228,9 @@
           </Field.Field>
           <Field.Field orientation='horizontal'>
             <Field.Content>
-              <Field.Label for='autoStartPlayback'>読み上げ自動開始</Field.Label>
+              <Field.Label for='autoStartPlayback'>{m.tts_auto_start()}</Field.Label>
               <Field.Description>
-                文字選択後に読み上げを自動で開始します
+                {m.tts_auto_start_description()}
               </Field.Description>
             </Field.Content>
             <Switch id='autoStartPlayback' bind:checked={autoStartPlayback.current}/>

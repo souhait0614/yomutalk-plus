@@ -1,19 +1,9 @@
 import type { LoadedNovelDocument, LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
 import { apiClient } from '@repo/api/client';
 import { novelShareFileExtension, novelShareQrPrefix } from '$lib/constants';
+import { m } from '$lib/paraglide/messages';
 import { getCurrentDateString } from '$lib/utils/misc';
 import * as v from 'valibot';
-
-export const fileTypeLabels: Record<LoadedNovelDocumentFileType, string> = {
-  aozoratext: '青空文庫形式テキストファイル',
-  plaintext: 'プレーンテキストファイル',
-};
-
-export const writingModeLabels: Record<NovelWritingMode, string> = {
-  'horizontal-tb': '横書き',
-  'vertical-lr': '縦書き（左から）',
-  'vertical-rl': '縦書き（右から）',
-};
 
 export interface SharedNovel {
   data: Uint8Array<ArrayBuffer>;
@@ -76,11 +66,11 @@ export const decodeSharedNovels = async (blob: Blob): Promise<SharedNovel[]> => 
   try {
     decoded = decode(await decompress(blob));
   } catch {
-    throw new Error('共有ファイルを読み込めませんでした');
+    throw new Error(m.share_load_failed());
   }
 
   const parsed = v.safeParse(sharedNovelsPayloadSchema, decoded);
-  if (!parsed.success) throw new Error('共有ファイルの形式が正しくありません');
+  if (!parsed.success) throw new Error(m.share_invalid_format());
 
   return parsed.output.novels.map((novel) => ({
     data: new Uint8Array(novel.data),
@@ -135,18 +125,18 @@ export const uploadSharedNovels = async (blob: Blob): Promise<string> => {
     form: { file: new File([blob], 'shared-novels.bin', { type: blob.type }) },
   });
   if (!response.ok) {
-    throw new Error(await readApiErrorMessage(response, '共有の準備ができませんでした'));
+    throw new Error(await readApiErrorMessage(response, m.share_prepare_failed()));
   }
 
   const body = await response.json() as { id?: unknown; };
-  if (typeof body.id !== 'string') throw new Error('共有の準備ができませんでした');
+  if (typeof body.id !== 'string') throw new Error(m.share_prepare_failed());
   return body.id;
 };
 
 export const downloadSharedNovels = async (id: string): Promise<SharedNovel[]> => {
   const response = await apiClient['shared-novels'][':id'].$get({ param: { id } });
   if (!response.ok) {
-    throw new Error(await readApiErrorMessage(response, '共有された小説を取得できませんでした'));
+    throw new Error(await readApiErrorMessage(response, m.share_fetch_failed()));
   }
 
   return decodeSharedNovels(await response.blob());

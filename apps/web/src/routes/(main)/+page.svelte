@@ -20,6 +20,7 @@
     moveLoadedNovelDocument,
   } from '$lib/db';
   import { downloadInternalNovel } from '$lib/internalNovels';
+  import { m } from '$lib/paraglide/messages';
   import { copyRegisteredText } from '$lib/selectedText';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { ttsPresetEntries } from '$lib/tts';
@@ -123,9 +124,9 @@
         writingMode,
         hash,
       });
-      toast.success(`「${novel.title}」を追加しました`);
+      toast.success(m.library_added_novel({ title: novel.title }));
     } catch {
-      toast.error('アプリ内蔵小説の追加に失敗しました');
+      toast.error(m.library_add_built_in_failed());
     }
   };
 
@@ -420,9 +421,9 @@
     if (!selectedText) return;
     try {
       await addBookmark(selectedText);
-      toast.success('ブックマークに追加しました');
+      toast.success(m.bookmark_added());
     } catch {
-      toast.error('ブックマークの追加に失敗しました');
+      toast.error(m.bookmark_add_failed());
     }
   };
 
@@ -507,7 +508,7 @@
         {/if}
       {:catch error}
         <div class='flex size-full items-center justify-center'>
-          <span>エラー: {error.message}</span>
+          <span>{m.common_error({ message: error.message })}</span>
         </div>
       {/await}
     {/if}

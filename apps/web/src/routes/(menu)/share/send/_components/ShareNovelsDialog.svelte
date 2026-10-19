@@ -2,6 +2,7 @@
   import { IconDownload, IconShare } from '@tabler/icons-svelte';
   import { browser } from '$app/environment';
   import QRCode from '$lib/components/QRCode.svelte';
+  import { m } from '$lib/paraglide/messages';
   import Button from '$lib/shadcn-svelte/components/ui/button/button.svelte';
   import * as Dialog from '$lib/shadcn-svelte/components/ui/dialog';
   import { createSharedNovelsFileName, createSharedNovelsQrText } from '$lib/sharedNovels';
@@ -40,12 +41,12 @@
     try {
       await navigator.share({
         files: [sharedNovelsFile],
-        title: 'よむとーく＋の小説',
+        title: m.share_file_title({ appName: m.app_name() }),
       });
     } catch (error) {
       // 共有メニューを閉じただけの場合はエラーにしない
       if (error instanceof DOMException && error.name === 'AbortError') return;
-      toast.error('共有メニューを開けませんでした');
+      toast.error(m.share_sheet_failed());
       console.error('Failed to share the shared novels file:', error);
     }
   };
@@ -54,10 +55,9 @@
 <Dialog.Root bind:open>
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Title>小説を送る準備ができました</Dialog.Title>
+      <Dialog.Title>{m.share_dialog_title()}</Dialog.Title>
       <Dialog.Description>
-        送り先の端末で「小説を受け取る」画面を開き、このQRコードを読み取るか、小説ファイルを渡してください。
-        共有は作成から1日で無効になります。
+        {m.share_dialog_description()} {m.share_expiry_note()}
       </Dialog.Description>
     </Dialog.Header>
     <div class='flex justify-center'>
@@ -65,11 +65,11 @@
     </div>
     <Dialog.Footer>
       <Button variant='outline' disabled={!blob} onclick={downloadSharedNovels}>
-        <IconDownload/> 小説ファイルをダウンロード
+        <IconDownload/> {m.share_download_file()}
       </Button>
       {#if canShareFile}
         <Button disabled={!sharedNovelsFile} onclick={shareSharedNovels}>
-          <IconShare/> 小説ファイルを共有
+          <IconShare/> {m.share_share_file()}
         </Button>
       {/if}
     </Dialog.Footer>

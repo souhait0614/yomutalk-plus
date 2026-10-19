@@ -1,8 +1,9 @@
 import type { HTMLInputAttributes } from 'svelte/elements';
+import { m } from '$lib/paraglide/messages';
 
 export class FileNotSelectedError extends Error {
   constructor() {
-    super('ファイルが選択されませんでした');
+    super(m.error_file_not_selected());
     this.name = 'FileNotSelectedError';
   }
 }

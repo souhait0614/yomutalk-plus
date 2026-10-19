@@ -4,6 +4,7 @@
   import { autoStartPlayback } from '$lib/appSettings.svelte';
   import NovelInlineContent from '$lib/components/NovelInlineContent.svelte';
   import { getManageSelectedTextsDialogContext } from '$lib/contexts/manageSelectedTextsDialog';
+  import { m } from '$lib/paraglide/messages';
   import { Badge } from '$lib/shadcn-svelte/components/ui/badge';
   import { Button, buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
   import * as Card from '$lib/shadcn-svelte/components/ui/card';
@@ -105,7 +106,7 @@
                       <Button
                         size='icon-sm'
                         variant='ghost'
-                        aria-label='削除'
+                        aria-label={m.common_delete()}
                         onclick={() => onClickDeleteButton(selectedTextId)}>
                         <IconTrash/>
                       </Button>
@@ -127,7 +128,7 @@
                   <Toggle
                     {...props}
                     bind:pressed={autoStartPlayback.current}
-                    aria-label='読み上げ自動開始'
+                    aria-label={m.tts_auto_start()}
                     class="
                       {buttonVariants({ size: 'icon', variant: 'outline' })}
                       data-[state=on]:*:[svg]:stroke-primary
@@ -137,17 +138,17 @@
                 {/snippet}
               </Tooltip.Trigger>
               <Tooltip.Content>
-                <p>読み上げ自動開始</p>
+                <p>{m.tts_auto_start()}</p>
               </Tooltip.Content>
             </Tooltip.Root>
             <Button
               class='grow'
-              aria-label={isPlaying ? '停止' : '再生'}
+              aria-label={isPlaying ? m.tts_stop() : m.tts_play()}
               onclick={onClickPlayButton}>
               {#if isPlaying}
-                <IconPlayerStop/> 停止
+                <IconPlayerStop/> {m.tts_stop()}
               {:else}
-                <IconPlayerPlay/> 再生
+                <IconPlayerPlay/> {m.tts_play()}
               {/if}
             </Button>
             <Tooltip.Root>
@@ -156,7 +157,7 @@
                   <Button
                     size='icon'
                     variant='outline'
-                    aria-label='読み上げ管理・設定'
+                    aria-label={m.tts_manage()}
                     {...props}
                     onclick={manageSelectedTextsDialog.open}>
                     <IconMessageDots/>
@@ -164,7 +165,7 @@
                 {/snippet}
               </Tooltip.Trigger>
               <Tooltip.Content>
-                <p>読み上げ管理・設定</p>
+                <p>{m.tts_manage()}</p>
               </Tooltip.Content>
             </Tooltip.Root>
           </div>
@@ -181,7 +182,7 @@
           <IconChevronUp/>
         </Tooltip.Trigger>
         <Tooltip.Content>
-          <p>操作パネルを開く</p>
+          <p>{m.footer_open_controls()}</p>
         </Tooltip.Content>
       </Tooltip.Root>
     </div>
@@ -194,7 +195,7 @@
       <Button
         size='icon-lg'
         variant='outline'
-        aria-label={isPlaying ? '停止' : '再生'}
+        aria-label={isPlaying ? m.tts_stop() : m.tts_play()}
         onclick={onClickPlayButton}>
         {#if isPlaying}
           <IconPlayerStop/>
@@ -216,7 +217,7 @@
           <IconChevronDown/>
         </Tooltip.Trigger>
         <Tooltip.Content>
-          <p>操作パネルを閉じる</p>
+          <p>{m.footer_close_controls()}</p>
         </Tooltip.Content>
       </Tooltip.Root>
       <div class='grow'>
@@ -231,12 +232,12 @@
       <Tooltip.Root>
         <Tooltip.Trigger
           class={buttonVariants({ size: 'icon-lg', variant: 'outline' })}
-          aria-label='ブックマークを開く'
+          aria-label={m.bookmark_open()}
           onclick={() => isOpenBookmarksSheet = true}>
           <IconBookmark/>
         </Tooltip.Trigger>
         <Tooltip.Content>
-          <p>ブックマーク</p>
+          <p>{m.bookmark_title()}</p>
         </Tooltip.Content>
       </Tooltip.Root>
     </footer>

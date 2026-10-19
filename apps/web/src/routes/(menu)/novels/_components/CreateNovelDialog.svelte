@@ -1,5 +1,6 @@
 <script lang='ts'>
   import type { LoadedNovelDocumentFileType } from '$lib/db';
+  import { m } from '$lib/paraglide/messages';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
   import * as Dialog from '$lib/shadcn-svelte/components/ui/dialog';
   import { Input } from '$lib/shadcn-svelte/components/ui/input';
@@ -37,22 +38,22 @@
   }}>
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Title>小説の新規作成</Dialog.Title>
+      <Dialog.Title>{m.novel_create_title()}</Dialog.Title>
     </Dialog.Header>
     <form class='flex flex-col gap-4' onsubmit={confirm}>
       <div class='flex flex-col gap-2'>
-        <Label for='create-novel-format'>形式</Label>
+        <Label for='create-novel-format'>{m.novel_format()}</Label>
         <NativeSelect.Root
           id='create-novel-format'
           class='w-full'
           disabled={busy}
           bind:value={fileType}>
-          <NativeSelect.Option value='aozoratext'>青空文庫形式</NativeSelect.Option>
-          <NativeSelect.Option value='plaintext'>プレーンテキスト</NativeSelect.Option>
+          <NativeSelect.Option value='aozoratext'>{m.format_aozora()}</NativeSelect.Option>
+          <NativeSelect.Option value='plaintext'>{m.format_plain()}</NativeSelect.Option>
         </NativeSelect.Root>
       </div>
       <div class='flex flex-col gap-2'>
-        <Label for='create-novel-title'>{fileType === 'plaintext' ? 'ファイル名' : 'タイトル'}</Label>
+        <Label for='create-novel-title'>{fileType === 'plaintext' ? m.novel_filename() : m.novel_title()}</Label>
         <Input
           id='create-novel-title'
           required
@@ -61,14 +62,14 @@
       </div>
       {#if fileType === 'aozoratext'}
         <div class='flex flex-col gap-2'>
-          <Label for='create-novel-author'>著者名</Label>
+          <Label for='create-novel-author'>{m.novel_author()}</Label>
           <Input id='create-novel-author' disabled={busy} bind:value={author}/>
         </div>
       {/if}
       <Dialog.Footer>
-        <Button variant='outline' disabled={busy} onclick={() => open = false}>キャンセル</Button>
+        <Button variant='outline' disabled={busy} onclick={() => open = false}>{m.common_cancel()}</Button>
         <Button type='submit' disabled={busy || !title.trim()}>
-          {#if busy}<Spinner/>{/if} 作成
+          {#if busy}<Spinner/>{/if} {m.novel_create_submit()}
         </Button>
       </Dialog.Footer>
     </form>

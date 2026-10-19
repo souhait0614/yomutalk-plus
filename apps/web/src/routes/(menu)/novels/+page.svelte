@@ -7,6 +7,7 @@
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { addLoadedNovelDocumentFromFile, deleteLoadedNovelDocument, getLoadedNovelDocuments, setLoadedNovelDocumentEditLocked, updateLoadedNovelDocumentFromFile } from '$lib/db';
+  import { m } from '$lib/paraglide/messages';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Badge } from '$lib/shadcn-svelte/components/ui/badge';
   import { Button, buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
@@ -63,7 +64,7 @@
       createDialogOpen = false;
       await goto(resolve('/(menu)/novels/[id]', { id }));
     } catch (error) {
-      toast.error(getErrorMessage(error, '小説を作成できませんでした'));
+      toast.error(getErrorMessage(error, m.novel_create_failed()));
     } finally {
       isCreating = false;
     }
@@ -108,7 +109,7 @@
       }
     } catch (error) {
       if (generation !== metadataLoadGeneration) return;
-      toast.error(getErrorMessage(error, '小説を読み込めませんでした'));
+      toast.error(getErrorMessage(error, m.novel_load_failed()));
       metadataDialogOpen = false;
     } finally {
       if (generation === metadataLoadGeneration) isLoadingMetadata = false;
@@ -131,9 +132,9 @@
       }
       await updateLoadedNovelDocumentFromFile(target.id, target.fileType, file, target.writingMode, target.hash);
       metadataDialogOpen = false;
-      toast.success('小説の情報を変更しました');
+      toast.success(m.novel_metadata_updated());
     } catch (error) {
-      toast.error(getErrorMessage(error, '小説の情報を変更できませんでした'));
+      toast.error(getErrorMessage(error, m.novel_metadata_update_failed()));
     } finally {
       isSavingMetadata = false;
     }
@@ -145,9 +146,9 @@
     isTogglingEditLock = true;
     try {
       await setLoadedNovelDocumentEditLocked(document.id, nextEditLocked);
-      toast.success(nextEditLocked ? '小説の編集をロックしました' : '小説の編集ロックを解除しました');
+      toast.success(nextEditLocked ? m.novel_edit_locked_toast() : m.novel_edit_unlocked_toast());
     } catch (error) {
-      toast.error(getErrorMessage(error, '編集ロックを変更できませんでした'));
+      toast.error(getErrorMessage(error, m.novel_edit_lock_failed()));
     } finally {
       isTogglingEditLock = false;
     }
@@ -165,9 +166,9 @@
         currentTabIndex.current = Math.max(0, selectedIndex - 1);
       }
       deleteDialogOpen = false;
-      toast.success('小説を削除しました');
+      toast.success(m.novel_deleted());
     } catch (error) {
-      toast.error(getErrorMessage(error, '小説を削除できませんでした'));
+      toast.error(getErrorMessage(error, m.novel_delete_failed()));
     } finally {
       isDeleting = false;
     }
@@ -176,31 +177,31 @@
 
 <div class='flex flex-col gap-4'>
   <div class='flex items-center justify-between gap-3'>
-    <p class='text-sm text-muted-foreground'>{documents.length}件の小説</p>
-    <Button onclick={openCreateDialog}><IconFilePlus/> 新規作成</Button>
+    <p class='text-sm text-muted-foreground'>{m.novel_count({ count: documents.length })}</p>
+    <Button onclick={openCreateDialog}><IconFilePlus/> {m.novel_create()}</Button>
   </div>
   <div class='flex flex-wrap items-center gap-2'>
     <InputGroup.Root class='min-w-40 flex-1'>
-      <InputGroup.Input placeholder='小説を検索...' bind:value={search}/>
+      <InputGroup.Input placeholder={m.novel_search_placeholder()} bind:value={search}/>
       <InputGroup.Addon>
         <IconSearch/>
       </InputGroup.Addon>
     </InputGroup.Root>
-    <NativeSelect.Root aria-label='形式で絞り込み' bind:value={formatFilter}>
-      <NativeSelect.Option value='all'>すべての形式</NativeSelect.Option>
-      <NativeSelect.Option value='aozoratext'>青空文庫形式</NativeSelect.Option>
-      <NativeSelect.Option value='plaintext'>プレーンテキスト</NativeSelect.Option>
+    <NativeSelect.Root aria-label={m.novel_filter_by_format()} bind:value={formatFilter}>
+      <NativeSelect.Option value='all'>{m.novel_filter_all_formats()}</NativeSelect.Option>
+      <NativeSelect.Option value='aozoratext'>{m.format_aozora()}</NativeSelect.Option>
+      <NativeSelect.Option value='plaintext'>{m.format_plain()}</NativeSelect.Option>
     </NativeSelect.Root>
   </div>
   {#if loadedNovelDocumentsQuery.current === undefined}
-    <div class='flex justify-center py-16' role='status' aria-label='小説一覧を読み込み中'><Spinner/></div>
+    <div class='flex justify-center py-16' role='status' aria-label={m.novel_list_loading()}><Spinner/></div>
   {:else if documents.length === 0}
     <div
       class='
         flex flex-col items-center gap-3 border-y py-16 text-muted-foreground
       '>
       <IconBook2 class='size-8'/>
-      <p>小説がありません。</p>
+      <p>{m.novel_empty()}</p>
     </div>
   {:else}
     <ul class='divide-y border-y'>
@@ -229,19 +230,19 @@
                 mt-1 flex flex-wrap items-center gap-2 text-xs
                 text-muted-foreground
               '>
-              <span>{document.fileType === 'aozoratext' ? '青空文庫形式' : 'プレーンテキスト'}</span>
-              {#if document.type === 'internal'}<Badge variant='outline'>内蔵</Badge>{/if}
+              <span>{document.fileType === 'aozoratext' ? m.format_aozora() : m.format_plain()}</span>
+              {#if document.type === 'internal'}<Badge variant='outline'>{m.novel_badge_internal()}</Badge>{/if}
             </div>
           </div>
           {#if document.type === 'file' && document.isEditLocked}
-            <Badge variant='outline'><IconLock/> 編集ロック</Badge>
+            <Badge variant='outline'><IconLock/> {m.novel_edit_lock_badge()}</Badge>
           {/if}
           {#if document.type === 'file' && !document.isEditLocked}
             <Button
               variant='ghost'
               size='icon'
-              aria-label={`「${document.title}」を編集`}
-              title='編集'
+              aria-label={m.novel_edit_aria({ title: document.title })}
+              title={m.novel_edit()}
               href={resolve('/(menu)/novels/[id]', { id: document.id })}>
               <IconPencil/>
             </Button>
@@ -249,8 +250,8 @@
           <DropdownMenu.Root>
             <DropdownMenu.Trigger
               class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-              aria-label={`「${document.title}」のメニュー`}
-              title='小説のメニュー'>
+              aria-label={m.novel_menu_aria({ title: document.title })}
+              title={m.novel_menu()}>
               <IconDotsVertical/>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content align='end'>
@@ -258,10 +259,10 @@
                 <DropdownMenu.Item
                   disabled={document.isEditLocked}
                   onSelect={() => void openMetadataDialog(document)}>
-                  <IconTypography/> {document.fileType === 'aozoratext' ? 'タイトル・著者名を変更' : 'ファイル名を変更'}
+                  <IconTypography/> {document.fileType === 'aozoratext' ? m.novel_change_metadata() : m.novel_change_filename()}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item onSelect={() => void toggleEditLock(document)}>
-                  {#if document.isEditLocked}<IconLockOpen/> 編集ロックを解除{:else}<IconLock/> 編集をロック{/if}
+                  {#if document.isEditLocked}<IconLockOpen/> {m.novel_unlock_edit()}{:else}<IconLock/> {m.novel_lock_edit()}{/if}
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator/>
               {/if}
@@ -271,13 +272,13 @@
                   deleteTarget = document;
                   deleteDialogOpen = true;
                 }}>
-                <IconTrash/> 削除
+                <IconTrash/> {m.common_delete()}
               </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Root>
         </li>
       {:else}
-        <li class='py-12 text-center text-sm text-muted-foreground'>一致する小説がありません。</li>
+        <li class='py-12 text-center text-sm text-muted-foreground'>{m.novel_no_match()}</li>
       {/each}
     </ul>
   {/if}
@@ -294,14 +295,14 @@
 <Dialog.Root bind:open={metadataDialogOpen}>
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Title>{metadataTarget?.fileType === 'aozoratext' ? 'タイトル・著者名を変更' : 'ファイル名を変更'}</Dialog.Title>
+      <Dialog.Title>{metadataTarget?.fileType === 'aozoratext' ? m.novel_change_metadata() : m.novel_change_filename()}</Dialog.Title>
     </Dialog.Header>
     {#if isLoadingMetadata}
-      <div class='flex justify-center py-8' role='status' aria-label='小説の情報を読み込み中'><Spinner/></div>
+      <div class='flex justify-center py-8' role='status' aria-label={m.novel_metadata_loading()}><Spinner/></div>
     {:else}
       <form class='flex flex-col gap-4' onsubmit={saveMetadata}>
         <div class='flex flex-col gap-2'>
-          <Label for='metadata-title'>{metadataTarget?.fileType === 'aozoratext' ? 'タイトル' : 'ファイル名'}</Label>
+          <Label for='metadata-title'>{metadataTarget?.fileType === 'aozoratext' ? m.novel_title() : m.novel_filename()}</Label>
           <Input
             id='metadata-title'
             required
@@ -310,14 +311,14 @@
         </div>
         {#if metadataTarget?.fileType === 'aozoratext'}
           <div class='flex flex-col gap-2'>
-            <Label for='metadata-author'>著者名</Label>
+            <Label for='metadata-author'>{m.novel_author()}</Label>
             <Input id='metadata-author' disabled={isSavingMetadata} bind:value={metadataAuthor}/>
           </div>
         {/if}
         <Dialog.Footer>
-          <Button variant='outline' disabled={isSavingMetadata} onclick={() => metadataDialogOpen = false}>キャンセル</Button>
+          <Button variant='outline' disabled={isSavingMetadata} onclick={() => metadataDialogOpen = false}>{m.common_cancel()}</Button>
           <Button type='submit' disabled={isSavingMetadata || !metadataTitle.trim()}>
-            {#if isSavingMetadata}<Spinner/>{/if} 変更
+            {#if isSavingMetadata}<Spinner/>{/if} {m.common_change()}
           </Button>
         </Dialog.Footer>
       </form>
@@ -328,12 +329,12 @@
 <AlertDialog.Root bind:open={deleteDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>小説を削除しますか？</AlertDialog.Title>
-      <AlertDialog.Description>「{deleteTarget?.title}」と、この小説のブックマークを削除します。この操作は取り消せません。</AlertDialog.Description>
+      <AlertDialog.Title>{m.library_delete_confirm_title()}</AlertDialog.Title>
+      <AlertDialog.Description>{m.novel_delete_confirm_description({ title: deleteTarget?.title ?? '' })}</AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={isDeleting}>キャンセル</AlertDialog.Cancel>
-      <AlertDialog.Action variant='destructive' disabled={isDeleting} onclick={() => void confirmDelete()}><IconTrash/> 削除</AlertDialog.Action>
+      <AlertDialog.Cancel disabled={isDeleting}>{m.common_cancel()}</AlertDialog.Cancel>
+      <AlertDialog.Action variant='destructive' disabled={isDeleting} onclick={() => void confirmDelete()}><IconTrash/> {m.common_delete()}</AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

@@ -5,6 +5,8 @@
   import NavigationItem from '$lib/components/NavigationItem.svelte';
   import { dexieExportDataFileExtension } from '$lib/constants';
   import { appDatabase, resetDatabase } from '$lib/db';
+  import { m } from '$lib/paraglide/messages';
+  import { getLocale, setLocale } from '$lib/paraglide/runtime';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
   import * as Dialog from '$lib/shadcn-svelte/components/ui/dialog';
@@ -29,6 +31,10 @@
       setMode('dark');
     }
   };
+  const getCurrentLocale = () => getLocale();
+  const setCurrentLocale = (locale: string | undefined) => {
+    if (locale === 'ja' || locale === 'en') void setLocale(locale);
+  };
 
   const exportDexieDatabase = async () => {
     try {
@@ -39,7 +45,7 @@
       ).blob();
       downloadBlob(compressedBlob, `yomutalk-plus-data-backup-${getCurrentDateString()}.${dexieExportDataFileExtension}`);
     } catch (error) {
-      toast.error('小説・ブックマークのバックアップに失敗しました');
+      toast.error(m.settings_backup_failed());
       console.error('Failed to export the database:', error);
     }
   };
@@ -66,10 +72,10 @@
     try {
       await resetDatabase();
       localStorage.clear();
-      toast.success('アプリのデータを削除しました');
+      toast.success(m.settings_delete_data_success());
       location.href = resolve('/');
     } catch (error) {
-      toast.error('アプリのデータの削除に失敗しました');
+      toast.error(m.settings_delete_data_failed());
       console.error('Failed to delete the app data:', error);
       isDeleting = false;
     }
@@ -90,10 +96,10 @@
         clearTablesBeforeImport: true,
       });
       importDialogOpen = false;
-      toast.success('小説・ブックマークをインポートしました');
+      toast.success(m.settings_import_success());
     } catch (error) {
       if (error instanceof FileNotSelectedError) return;
-      toast.error('小説・ブックマークのインポートに失敗しました');
+      toast.error(m.settings_import_failed());
       console.error('Failed to import the database:', error);
     } finally {
       isImporting = false;
@@ -104,28 +110,43 @@
 <div class='flex flex-col gap-2'>
   <Field.Group>
     <Field.Field orientation='horizontal'>
-      <Field.Label for='novel-document-view-font-size'>小説文字サイズ</Field.Label>
+      <Field.Label for='language'>{m.settings_language()}</Field.Label>
+      <NativeSelect id='language' bind:value={getCurrentLocale, setCurrentLocale}>
+        <NativeSelectOption value='ja'>日本語</NativeSelectOption>
+        <NativeSelectOption value='en'>English</NativeSelectOption>
+      </NativeSelect>
+    </Field.Field>
+    <Field.Field orientation='horizontal'>
+      <Field.Label for='novel-document-view-font-size'>{m.settings_novel_font_size()}</Field.Label>
       <ToggleGroup.Root
         variant='outline'
         type='single'
         size='sm'
         bind:value={novelDocumentViewFontSize.current}>
-        <ToggleGroup.Item value='sm' aria-label='小'><span class='text-sm'>文</span></ToggleGroup.Item>
-        <ToggleGroup.Item value='md' aria-label='中'><span class='text-base'>文</span></ToggleGroup.Item>
-        <ToggleGroup.Item value='lg' aria-label='大'><span class='text-lg'>文</span></ToggleGroup.Item>
-        <ToggleGroup.Item value='xl' aria-label='特大'><span class='text-xl'>文</span></ToggleGroup.Item>
+        <ToggleGroup.Item value='sm' aria-label={m.settings_font_size_small()}>
+          <span class='text-sm'>文</span>
+        </ToggleGroup.Item>
+        <ToggleGroup.Item value='md' aria-label={m.settings_font_size_medium()}>
+          <span class='text-base'>文</span>
+        </ToggleGroup.Item>
+        <ToggleGroup.Item value='lg' aria-label={m.settings_font_size_large()}>
+          <span class='text-lg'>文</span>
+        </ToggleGroup.Item>
+        <ToggleGroup.Item value='xl' aria-label={m.settings_font_size_extra_large()}>
+          <span class='text-xl'>文</span>
+        </ToggleGroup.Item>
       </ToggleGroup.Root>
     </Field.Field>
     <Field.Field orientation='horizontal'>
-      <Field.Label for='show-ruby'>ルビを表示</Field.Label>
+      <Field.Label for='show-ruby'>{m.settings_show_ruby()}</Field.Label>
       <Switch id='show-ruby' bind:checked={showRuby.current}/>
     </Field.Field>
     <Field.Field orientation='horizontal'>
-      <Field.Label for='theme'>テーマ</Field.Label>
+      <Field.Label for='theme'>{m.settings_theme()}</Field.Label>
       <NativeSelect id='theme' bind:value={getCurrentTheme, setCurrentTheme}>
-        <NativeSelectOption value='system'>システムに追従</NativeSelectOption>
-        <NativeSelectOption value='light'>ライト</NativeSelectOption>
-        <NativeSelectOption value='dark'>ダーク</NativeSelectOption>
+        <NativeSelectOption value='system'>{m.theme_system()}</NativeSelectOption>
+        <NativeSelectOption value='light'>{m.theme_light()}</NativeSelectOption>
+        <NativeSelectOption value='dark'>{m.theme_dark()}</NativeSelectOption>
       </NativeSelect>
     </Field.Field>
   </Field.Group>
@@ -134,18 +155,18 @@
     {#snippet startIcon()}
       <IconDatabaseExport/>
     {/snippet}
-    小説・ブックマークをバックアップ
+    {m.settings_backup()}
     {#snippet description()}
-      小説・ブックマークのデータを{dexieExportDataFileExtension}形式のファイルにバックアップします
+      {m.settings_backup_description({ ext: dexieExportDataFileExtension })}
     {/snippet}
   </NavigationItem>
   <NavigationItem onclick={openImportDialog}>
     {#snippet startIcon()}
       <IconDatabaseImport/>
     {/snippet}
-    小説・ブックマークを復元
+    {m.settings_restore()}
     {#snippet description()}
-      {dexieExportDataFileExtension}形式のファイルから小説・ブックマークのデータを復元します
+      {m.settings_restore_description({ ext: dexieExportDataFileExtension })}
     {/snippet}
   </NavigationItem>
   <Separator/>
@@ -153,9 +174,9 @@
     {#snippet startIcon()}
       <IconTrashX/>
     {/snippet}
-    アプリのデータを削除
+    {m.settings_delete_data()}
     {#snippet description()}
-      小説・ブックマークのデータおよびアプリの設定を削除し初期状態に戻します。この操作は取り消せません。
+      {m.settings_delete_data_description()}
     {/snippet}
   </NavigationItem>
   <Separator/>
@@ -163,22 +184,22 @@
     {#snippet startIcon()}
       <IconInfoCircle/>
     {/snippet}
-    このアプリについて
+    {m.nav_about()}
   </NavigationItem>
 </div>
 
 <AlertDialog.Root bind:open={importDialogOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>データを復元しますか？</AlertDialog.Title>
+      <AlertDialog.Title>{m.settings_restore_confirm_title()}</AlertDialog.Title>
       <AlertDialog.Description>
-        現在の小説・ブックマークは削除され、選択したバックアップのデータで上書きされます。この操作は取り消せません。
+        {m.settings_restore_confirm_description()}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={isImporting}>キャンセル</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={isImporting}>{m.common_cancel()}</AlertDialog.Cancel>
       <AlertDialog.Action variant='destructive' disabled={isImporting} onclick={importDexieDatabase}>
-        復元
+        {m.settings_restore_submit()}
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>
@@ -187,13 +208,13 @@
 <Dialog.Root bind:open={deleteDataDialogOpen}>
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Title>アプリのデータを削除しますか？</Dialog.Title>
+      <Dialog.Title>{m.settings_delete_data_confirm_title()}</Dialog.Title>
       <Dialog.Description>
-        小説・ブックマークのデータおよびアプリの設定を削除し初期状態に戻します。この操作は取り消せません。
+        {m.settings_delete_data_description()}
       </Dialog.Description>
     </Dialog.Header>
     <Field.Field>
-      <Field.Label for='delete-data-confirmation'>確認のため「削除」と入力してください</Field.Label>
+      <Field.Label for='delete-data-confirmation'>{m.settings_delete_data_confirmation_label({ word: m.settings_delete_data_confirm_word() })}</Field.Label>
       <Input
         id='delete-data-confirmation'
         bind:value={deleteConfirmationText}
@@ -202,13 +223,13 @@
     </Field.Field>
     <Dialog.Footer>
       <Button variant='outline' disabled={isDeleting} onclick={() => (deleteDataDialogOpen = false)}>
-        キャンセル
+        {m.common_cancel()}
       </Button>
       <Button
         variant='destructive'
-        disabled={deleteConfirmationText !== '削除' || isDeleting}
+        disabled={deleteConfirmationText !== m.settings_delete_data_confirm_word() || isDeleting}
         onclick={deleteAllAppData}>
-        削除
+        {m.common_delete()}
       </Button>
     </Dialog.Footer>
   </Dialog.Content>

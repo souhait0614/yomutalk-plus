@@ -2,6 +2,7 @@
   import appIcon from '@repo/assets/app-icons/icon-256.png?url&no-inline';
   import { IconDeviceMobileDown, IconX } from '@tabler/icons-svelte';
   import { pwaInstallBypassed } from '$lib/appSettings.svelte';
+  import { m } from '$lib/paraglide/messages';
   import { pwaInstallation } from '$lib/pwaInstallation.svelte';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
@@ -22,21 +23,21 @@
     class='absolute top-[calc(1rem+var(--safe-area-inset-top))] right-4'
     variant='ghost'
     size='lg'
-    aria-label='閉じる'
+    aria-label={m.common_close()}
     onclick={() => {
       warningOpen = true;
     }}>
-    閉じる <IconX/>
+    {m.common_close()} <IconX/>
   </Button>
   <div class='flex flex-col items-center gap-3'>
     <img
       src={appIcon}
-      alt='よむとーく＋'
+      alt={m.app_name()}
       class='size-20 rounded-2xl'>
     <div class='flex flex-col items-center gap-1'>
-      <h1 class='text-xl font-medium'>よむとーく＋</h1>
+      <h1 class='text-xl font-medium'>{m.app_name()}</h1>
       <p class='text-center text-sm text-muted-foreground'>
-        ホーム画面に追加すると、アプリとして快適にお使いいただけます。
+        {m.pwa_guide_install_description()}
       </p>
     </div>
   </div>
@@ -48,7 +49,7 @@
           void pwaInstallation.install();
         }}>
         <IconDeviceMobileDown/>
-        ホーム画面に追加
+        {m.pwa_add_to_home_screen()}
       </Button>
     {:else}
       <p class='text-sm'>{pwaInstallation.guide.description}</p>
@@ -66,14 +67,14 @@
 <AlertDialog.Root bind:open={warningOpen}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>ホーム画面に追加せずに開きますか？</AlertDialog.Title>
+      <AlertDialog.Title>{m.pwa_bypass_confirm_title()}</AlertDialog.Title>
       <AlertDialog.Description>
-        このままブラウザで開くと、正常に動作しない可能性があります。ホーム画面に追加してからご利用ください。
+        {m.pwa_bypass_confirm_description()}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Action onclick={bypass}>そのまま開く</AlertDialog.Action>
-      <AlertDialog.Cancel>キャンセル</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={bypass}>{m.pwa_open_anyway()}</AlertDialog.Action>
+      <AlertDialog.Cancel>{m.common_cancel()}</AlertDialog.Cancel>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>

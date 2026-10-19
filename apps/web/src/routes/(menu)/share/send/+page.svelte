@@ -1,6 +1,7 @@
 <script lang='ts'>
   import { IconShare } from '@tabler/icons-svelte';
   import { getLoadedNovelDocuments } from '$lib/db';
+  import { m } from '$lib/paraglide/messages';
   import Button from '$lib/shadcn-svelte/components/ui/button/button.svelte';
   import { Checkbox } from '$lib/shadcn-svelte/components/ui/checkbox';
   import * as Field from '$lib/shadcn-svelte/components/ui/field';
@@ -41,7 +42,7 @@
       sharedNovelsBlob = blob;
       shareDialogOpen = true;
     } catch (error) {
-      toast.error(getErrorMessage(error, '共有の準備ができませんでした'));
+      toast.error(getErrorMessage(error, m.share_prepare_failed()));
       console.error('Failed to prepare shared novels:', error);
     } finally {
       isPreparing = false;
@@ -51,9 +52,9 @@
 
 <div class='flex min-h-full flex-col gap-4'>
   <Field.Set class='grow'>
-    <Field.Legend>送る小説を選択</Field.Legend>
+    <Field.Legend>{m.share_send_select()}</Field.Legend>
     <Field.Description>
-      送る小説を1つ以上選択してください
+      {m.share_send_select_hint()}
     </Field.Description>
     <Field.Group class='gap-4'>
       {#each filteredLoadedNovelDocuments as loadedNovelDocument (loadedNovelDocument.id)}
@@ -68,7 +69,7 @@
           </Field.Field>
         </Field.Label>
       {:else}
-        <p class='text-sm text-muted-foreground'>送れる小説がありません。</p>
+        <p class='text-sm text-muted-foreground'>{m.share_send_empty()}</p>
       {/each}
     </Field.Group>
   </Field.Set>
@@ -78,9 +79,9 @@
       size='lg'
       onclick={() => void handleClickShareButton()}>
       {#if isPreparing}
-        <Spinner/> 準備中…
+        <Spinner/> {m.share_preparing()}
       {:else}
-        <IconShare/> 送る
+        <IconShare/> {m.share_send_action()}
       {/if}
     </Button>
   </div>

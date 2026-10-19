@@ -8,12 +8,13 @@
     "dev": "vite dev",
     "lint": "eslint --cache .",
     "lint:fix": "eslint --cache --fix .",
-    "prepare": "svelte-kit sync",
+    "prepare": "svelte-kit sync && paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --emit-ts-declarations",
     "preview": "vite preview",
-    "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "typecheck:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+    "typecheck": "svelte-kit sync && paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --emit-ts-declarations && svelte-check --tsconfig ./tsconfig.json",
+    "typecheck:watch": "svelte-kit sync && paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --emit-ts-declarations && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "2.29.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
     "@sveltejs/adapter-cloudflare": "7.2.9",

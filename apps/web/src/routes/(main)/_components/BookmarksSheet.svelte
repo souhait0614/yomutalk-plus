@@ -9,6 +9,7 @@
     getBookmarks,
     setBookmarkFolder,
   } from '$lib/db';
+  import { m } from '$lib/paraglide/messages';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Button } from '$lib/shadcn-svelte/components/ui/button';
   import { Input } from '$lib/shadcn-svelte/components/ui/input';
@@ -40,7 +41,7 @@
   const bookmarkFolders = $derived(bookmarkFoldersQuery.current ?? []);
   const uncategorizedBookmarks = $derived(bookmarks.filter(({ folderId }) => folderId === null));
   const bookmarkFolderItems = $derived([
-    { value: '', label: '未分類' },
+    { value: '', label: m.bookmark_folder_uncategorized() },
     ...bookmarkFolders.map(({ id, name }) => ({ value: id, label: name })),
   ]);
   const collapsedSections = new PersistedState<Record<string, boolean>>('bookmark-section-collapsed', {});
@@ -65,7 +66,7 @@
       await addBookmarkFolder(newFolderName);
       newFolderName = '';
     } catch {
-      toast.error('フォルダの作成に失敗しました');
+      toast.error(m.bookmark_folder_create_failed());
     }
   };
 
@@ -73,7 +74,7 @@
     try {
       await deleteBookmarkFolder(folderId);
     } catch {
-      toast.error('フォルダの削除に失敗しました');
+      toast.error(m.bookmark_folder_delete_failed());
     }
   };
 
@@ -81,7 +82,7 @@
     try {
       await deleteBookmark(bookmarkId);
     } catch {
-      toast.error('ブックマークの削除に失敗しました');
+      toast.error(m.bookmark_delete_failed());
     }
   };
 
@@ -114,7 +115,7 @@
     try {
       await setBookmarkFolder(bookmarkId, folderId);
     } catch {
-      toast.error('フォルダの変更に失敗しました');
+      toast.error(m.bookmark_folder_change_failed());
     }
   };
 
@@ -126,9 +127,9 @@
   const handleAddToSelectedTexts = (bookmark: Bookmark) => {
     try {
       onClickAddToSelectedTextsButton(bookmark);
-      toast.success('読み上げに追加しました');
+      toast.success(m.tts_added());
     } catch {
-      toast.error('読み上げへの追加に失敗しました');
+      toast.error(m.tts_add_failed());
     }
   };
 </script>
@@ -141,7 +142,7 @@
       sm:max-w-xl
     '>
     <Sheet.Header>
-      <Sheet.Title>ブックマーク</Sheet.Title>
+      <Sheet.Title>{m.bookmark_title()}</Sheet.Title>
     </Sheet.Header>
     <div class='min-h-0 flex-1 overflow-y-auto px-4 pb-4'>
       {#if bookmarksQuery.isLoading || bookmarkFoldersQuery.isLoading}
@@ -151,7 +152,7 @@
       {:else}
         <div class='flex flex-col gap-2'>
           <BookmarkSection
-            title='未分類'
+            title={m.bookmark_folder_uncategorized()}
             isCollapsed={collapsedSections.current.uncategorized ?? false}
             bookmarks={uncategorizedBookmarks}
             {bookmarkFolderItems}
@@ -178,13 +179,13 @@
           {/each}
         </div>
         <form class='mt-4 flex gap-2' onsubmit={handleCreateFolder}>
-          <Input bind:value={newFolderName} aria-label='新しいフォルダ名' placeholder='新しいフォルダ名'/>
+          <Input bind:value={newFolderName} aria-label={m.bookmark_new_folder_name()} placeholder={m.bookmark_new_folder_name()}/>
           <Button
             type='submit'
             size='icon'
             variant='outline'
             disabled={!newFolderName.trim()}
-            aria-label='フォルダを作成'>
+            aria-label={m.bookmark_create_folder()}>
             <IconFolderPlus/>
           </Button>
         </form>
@@ -200,22 +201,22 @@
   }}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>{deleteTarget?.type === 'folder' ? 'フォルダ' : 'ブックマーク'}を削除しますか？</AlertDialog.Title>
+      <AlertDialog.Title>{deleteTarget?.type === 'folder' ? m.bookmark_delete_confirm_folder_title() : m.bookmark_delete_confirm_bookmark_title()}</AlertDialog.Title>
       <AlertDialog.Description>
         {#if deleteTarget?.type === 'folder'}
-          「{deleteTarget.folder.name}」を削除します。この操作は取り消せません。
+          {m.bookmark_delete_confirm_folder_description({ name: deleteTarget.folder.name })}
         {:else if deleteTarget?.type === 'bookmark'}
-          このブックマークを削除します。この操作は取り消せません。
+          {m.bookmark_delete_confirm_bookmark_description()}
         {/if}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={isDeleting}>キャンセル</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={isDeleting}>{m.common_cancel()}</AlertDialog.Cancel>
       <AlertDialog.Action
         variant='destructive'
         disabled={isDeleting}
         onclick={handleConfirmDelete}>
-        削除
+        {m.common_delete()}
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

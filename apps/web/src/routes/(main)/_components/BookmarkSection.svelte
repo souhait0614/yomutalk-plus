@@ -2,6 +2,7 @@
   import type { Bookmark, LoadedNovelDocument } from '$lib/db';
   import { IconChevronDown, IconChevronRight, IconMapPin, IconPlayerPlay, IconTrash } from '@tabler/icons-svelte';
   import NovelInlineContent from '$lib/components/NovelInlineContent.svelte';
+  import { m } from '$lib/paraglide/messages';
   import { Button, buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
   import * as Item from '$lib/shadcn-svelte/components/ui/item';
   import {
@@ -44,8 +45,8 @@
   }: BookmarkSectionProps = $props();
 
   const getDocumentTitle = (bookmark: Bookmark) => {
-    if (bookmark.documentId === null) return '文書なし';
-    return loadedNovelDocuments.find(({ id }) => id === bookmark.documentId)?.title ?? '削除された文書';
+    if (bookmark.documentId === null) return m.bookmark_no_document();
+    return loadedNovelDocuments.find(({ id }) => id === bookmark.documentId)?.title ?? m.bookmark_deleted_document();
   };
   const canRestoreLocation = (bookmark: Bookmark) => (
     bookmark.documentId !== null
@@ -62,7 +63,7 @@
       <Button
         size='icon-sm'
         variant='outline'
-        aria-label={`${title}を${isCollapsed ? '展開' : '折りたたみ'}`}
+        aria-label={isCollapsed ? m.bookmark_expand_section({ title }) : m.bookmark_collapse_section({ title })}
         onclick={onToggleCollapsed}>
         {#if isCollapsed}
           <IconChevronRight/>
@@ -77,7 +78,7 @@
       <Button
         size='icon-sm'
         variant='destructive'
-        aria-label={`${title}を削除`}
+        aria-label={m.bookmark_delete_section({ title })}
         onclick={onDeleteFolder}>
         <IconTrash/>
       </Button>
@@ -95,7 +96,7 @@
               <Item.Description>
                 {getDocumentTitle(bookmark)}
                 {#if bookmark.registrationMethod === 'manual'}
-                  (手動)
+                  {m.bookmark_manual()}
                 {/if}
               </Item.Description>
               <!-- eslint-disable-next-line better-tailwindcss/enforce-consistent-line-wrapping -->
@@ -105,7 +106,7 @@
                   class='max-w-full'
                   value={bookmark.folderId ?? ''}
                   onchange={(event) => onSetBookmarkFolder(bookmark.id, event.currentTarget.value || null)}
-                  aria-label='保存先フォルダ'>
+                  aria-label={m.bookmark_target_folder()}>
                   {#each bookmarkFolderItems as folder (folder.value)}
                     <NativeSelectOption value={folder.value}>{folder.label}</NativeSelectOption>
                   {/each}
@@ -114,30 +115,30 @@
                   <Tooltip.Root>
                     <Tooltip.Trigger
                       class={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
-                      aria-label='ブックマーク位置を表示'
+                      aria-label={m.bookmark_show_position()}
                       disabled={!canRestoreLocation(bookmark)}
                       onclick={() => onRestoreLocation(bookmark)}>
                       <IconMapPin/>
                     </Tooltip.Trigger>
-                    <Tooltip.Content><p>ブックマーク位置を表示</p></Tooltip.Content>
+                    <Tooltip.Content><p>{m.bookmark_show_position()}</p></Tooltip.Content>
                   </Tooltip.Root>
                   <Tooltip.Root>
                     <Tooltip.Trigger
                       class={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
-                      aria-label='読み上げに追加'
+                      aria-label={m.tts_add()}
                       onclick={() => onAddToSelectedTexts(bookmark)}>
                       <IconPlayerPlay/>
                     </Tooltip.Trigger>
-                    <Tooltip.Content><p>読み上げに追加</p></Tooltip.Content>
+                    <Tooltip.Content><p>{m.tts_add()}</p></Tooltip.Content>
                   </Tooltip.Root>
                   <Tooltip.Root>
                     <Tooltip.Trigger
                       class={buttonVariants({ variant: 'destructive', size: 'icon-sm' })}
-                      aria-label='ブックマークを削除'
+                      aria-label={m.bookmark_delete_section({ title: m.bookmark_title() })}
                       onclick={() => onDeleteBookmark(bookmark)}>
                       <IconTrash/>
                     </Tooltip.Trigger>
-                    <Tooltip.Content><p>削除</p></Tooltip.Content>
+                    <Tooltip.Content><p>{m.common_delete()}</p></Tooltip.Content>
                   </Tooltip.Root>
                 </Item.Actions>
               </div>
@@ -146,7 +147,7 @@
         {/each}
       </Item.Group>
     {:else}
-      <p class='py-4 text-center text-sm text-muted-foreground'>ブックマークはありません。</p>
+      <p class='py-4 text-center text-sm text-muted-foreground'>{m.bookmark_empty()}</p>
     {/if}
   {/if}
 </section>

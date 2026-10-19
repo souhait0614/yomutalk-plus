@@ -1,4 +1,5 @@
 import { apiClient, computeContentHash } from '@repo/api/client';
+import { m } from '$lib/paraglide/messages';
 
 export type {
   InternalNovelEntry,
@@ -11,7 +12,7 @@ export { internalNovelList, isInternalNovelVariantGroup, toInternalNovelVariantI
 
 export const fetchInternalNovelHash = async (novelId: string): Promise<string> => {
   const response = await apiClient.novels[':id'].hash.$get({ param: { id: novelId } });
-  if (!response.ok) throw new Error(`アプリ内蔵小説のハッシュを取得できませんでした (${response.status})`);
+  if (!response.ok) throw new Error(m.error_internal_novel_hash({ status: response.status }));
 
   const body = await response.json();
   return body.hash;
@@ -19,7 +20,7 @@ export const fetchInternalNovelHash = async (novelId: string): Promise<string> =
 
 export const downloadInternalNovel = async (novelId: string): Promise<{ fileData: File; hash: string; }> => {
   const response = await apiClient.novels[':id'].$get({ param: { id: novelId } });
-  if (!response.ok) throw new Error(`アプリ内蔵小説をダウンロードできませんでした (${response.status})`);
+  if (!response.ok) throw new Error(m.error_internal_novel_download({ status: response.status }));
 
   const content = await response.arrayBuffer();
   return {

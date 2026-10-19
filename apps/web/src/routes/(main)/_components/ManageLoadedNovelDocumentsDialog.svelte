@@ -3,6 +3,7 @@
   import { IconChevronDown, IconChevronUp, IconEye, IconPlus, IconTrash } from '@tabler/icons-svelte';
   import { getAddLoadedNovelDocumentDialogContext } from '$lib/contexts/addLoadedNovelDocumentDialog';
   import { getInternalNovelUpdateContext } from '$lib/contexts/internalNovelUpdate';
+  import { m } from '$lib/paraglide/messages';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
   import { Button, buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
   import * as ButtonGroup from '$lib/shadcn-svelte/components/ui/button-group';
@@ -52,7 +53,7 @@
       sm:max-w-2xl
     '>
     <Dialog.Header>
-      <Dialog.Title>小説管理・設定</Dialog.Title>
+      <Dialog.Title>{m.nav_library_manage()}</Dialog.Title>
     </Dialog.Header>
     <div class='flex grow flex-col overflow-y-auto rounded-2xl border'>
       {#if loadedNovelDocuments.length > 0}
@@ -66,7 +67,7 @@
                       <Button
                         size='icon-xs'
                         variant='outline'
-                        aria-label='上へ移動'
+                        aria-label={m.library_move_up()}
                         disabled={index === 0}
                         onclick={() => onClickMoveButton(loadedNovelDocument.id, 'up')}>
                         <IconChevronUp/>
@@ -74,7 +75,7 @@
                       <Button
                         size='icon-xs'
                         variant='outline'
-                        aria-label='下へ移動'
+                        aria-label={m.library_move_down()}
                         disabled={index === loadedNovelDocuments.length - 1}
                         onclick={() => onClickMoveButton(loadedNovelDocument.id, 'down')}>
                         <IconChevronDown/>
@@ -84,11 +85,11 @@
                   <Item.Content>
                     <Item.Title>{loadedNovelDocument.title}</Item.Title>
                     {#if loadedNovelDocument.type === 'internal'}
-                      <Item.Description>アプリ内蔵小説</Item.Description>
+                      <Item.Description>{m.library_built_in_novels()}</Item.Description>
                     {:else if loadedNovelDocument.fileType === 'aozoratext'}
-                      <Item.Description>青空文庫形式テキストファイル</Item.Description>
-                    {:else if loadedNovelDocument.fileType === 'plaintext'}
-                      <Item.Description>プレーンテキストファイル</Item.Description>
+                      <Item.Description>{m.file_type_aozora()}</Item.Description>
+                    {:else}
+                      <Item.Description>{m.file_type_plain()}</Item.Description>
                     {/if}
                   </Item.Content>
                   <Item.Actions>
@@ -97,12 +98,12 @@
                         size='sm'
                         disabled={internalNovelUpdate.updatingDocumentIds.has(loadedNovelDocument.id)}
                         onclick={() => void internalNovelUpdate.updateDocument(loadedNovelDocument.id)}>
-                        小説を更新する
+                        {m.library_update_novel()}
                       </Button>
                     {/if}
                     <Toggle
                       variant='outline'
-                      aria-label='表示'
+                      aria-label={m.library_show()}
                       bind:pressed={() => currentTabIndex === index,
                       () => {
                         currentTabIndex = index;
@@ -119,7 +120,7 @@
                     <Button
                       size='icon'
                       variant='destructive'
-                      aria-label='削除'
+                      aria-label={m.common_delete()}
                       onclick={() => {
                         deleteTarget = loadedNovelDocument;
                         deleteDialogOpen = true;
@@ -133,11 +134,11 @@
           {/each}
         </ol>
       {:else}
-        <p class='px-4 py-8 text-center text-muted-foreground'>読み込まれた小説はありません。</p>
+        <p class='px-4 py-8 text-center text-muted-foreground'>{m.library_empty()}</p>
       {/if}
       <div class='sticky bottom-0 flex w-full justify-end bg-muted p-2'>
         <Button variant='outline' onclick={() => addLoadedNovelDocumentDialog.open()}>
-          <IconPlus/> 小説を追加
+          <IconPlus/> {m.nav_add_novel()}
         </Button>
       </div>
     </div>
@@ -151,18 +152,18 @@
   }}>
   <AlertDialog.Content>
     <AlertDialog.Header>
-      <AlertDialog.Title>小説を削除しますか？</AlertDialog.Title>
+      <AlertDialog.Title>{m.library_delete_confirm_title()}</AlertDialog.Title>
       <AlertDialog.Description>
-        「{deleteTarget?.title}」を削除します。この操作は取り消せません。
+        {m.library_delete_confirm_description({ title: deleteTarget?.title ?? '' })}
       </AlertDialog.Description>
     </AlertDialog.Header>
     <AlertDialog.Footer>
-      <AlertDialog.Cancel disabled={isDeleting}>キャンセル</AlertDialog.Cancel>
+      <AlertDialog.Cancel disabled={isDeleting}>{m.common_cancel()}</AlertDialog.Cancel>
       <AlertDialog.Action
         variant='destructive'
         disabled={isDeleting}
         onclick={handleClickConfirmDeleteButton}>
-        <IconTrash/> 削除
+        <IconTrash/> {m.common_delete()}
       </AlertDialog.Action>
     </AlertDialog.Footer>
   </AlertDialog.Content>

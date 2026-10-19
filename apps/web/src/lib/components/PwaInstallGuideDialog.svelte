@@ -1,4 +1,5 @@
 <script lang='ts'>
+  import { m } from '$lib/paraglide/messages';
   import { pwaInstallation } from '$lib/pwaInstallation.svelte';
   import { buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
   import * as Dialog from '$lib/shadcn-svelte/components/ui/dialog';
@@ -7,7 +8,7 @@
 <Dialog.Root bind:open={pwaInstallation.guideOpen}>
   <Dialog.Content class='sm:max-w-md' showCloseButton={false}>
     <Dialog.Header>
-      <Dialog.Title>ホーム画面に追加</Dialog.Title>
+      <Dialog.Title>{m.pwa_add_to_home_screen()}</Dialog.Title>
       <Dialog.Description>{pwaInstallation.guide.description}</Dialog.Description>
     </Dialog.Header>
     {#if pwaInstallation.guide.steps.length > 0}
@@ -18,7 +19,7 @@
       </ol>
     {/if}
     <Dialog.Footer>
-      <Dialog.Close class={buttonVariants({ variant: 'outline' })}>閉じる</Dialog.Close>
+      <Dialog.Close class={buttonVariants({ variant: 'outline' })}>{m.common_close()}</Dialog.Close>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

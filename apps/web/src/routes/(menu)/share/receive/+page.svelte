@@ -6,6 +6,7 @@
   import QrCodeScanner from '$lib/components/QrCodeScanner.svelte';
   import { novelShareFileExtension } from '$lib/constants';
   import { addLoadedNovelDocumentFromFile, getLoadedNovelDocuments } from '$lib/db';
+  import { m } from '$lib/paraglide/messages';
   import Button from '$lib/shadcn-svelte/components/ui/button/button.svelte';
   import { Checkbox } from '$lib/shadcn-svelte/components/ui/checkbox';
   import * as Dialog from '$lib/shadcn-svelte/components/ui/dialog';
@@ -14,10 +15,8 @@
   import {
     decodeSharedNovels,
     downloadSharedNovels,
-    fileTypeLabels,
     formatByteSize,
     parseSharedNovelsQrText,
-    writingModeLabels,
   } from '$lib/sharedNovels';
   import { computeContentHash } from '$lib/utils/hash';
   import { FileNotSelectedError, getErrorMessage, pickSingleFile } from '$lib/utils/misc';
@@ -48,7 +47,7 @@
   );
 
   const setEntries = async (sharedNovels: SharedNovel[]) => {
-    if (sharedNovels.length === 0) throw new Error('受け取った小説がありません');
+    if (sharedNovels.length === 0) throw new Error(m.share_no_novel_received());
     const loadedNovelDocuments = await getLoadedNovelDocuments();
     // ファイルのバイト列と書き込み方向が一致する小説は追加済みとみなす
     const addedDocumentKeys = new Set(
@@ -76,7 +75,7 @@
     try {
       await setEntries(await downloadSharedNovels(sharedNovelsId));
     } catch (error) {
-      loadErrorMessage = getErrorMessage(error, '共有された小説を取得できませんでした');
+      loadErrorMessage = getErrorMessage(error, m.share_fetch_failed());
       status = 'selecting';
       console.error('Failed to download shared novels:', error);
     }
@@ -85,7 +84,7 @@
   const handleReadQrCode = (text: string): boolean => {
     const sharedNovelsId = parseSharedNovelsQrText(text);
     if (sharedNovelsId === null) {
-      scannerErrorMessage = 'このQRコードは小説の共有用ではありません。小説を送る側のQRコードを読み取ってください。';
+      scannerErrorMessage = m.share_qr_invalid();
       return false;
     }
 
@@ -103,7 +102,7 @@
 
   const handleScannerError = (error: unknown) => {
     isScannerDialogOpen = false;
-    cameraErrorMessage = 'カメラを起動できませんでした。カメラの使用を許可しているか確認してください。';
+    cameraErrorMessage = m.share_camera_failed();
     console.error('Failed to start the camera:', error);
   };
 
@@ -119,7 +118,7 @@
         status = entries.length > 0 ? 'ready' : 'selecting';
         return;
       }
-      loadErrorMessage = getErrorMessage(error, '共有ファイルを読み込めませんでした');
+      loadErrorMessage = getErrorMessage(error, m.share_load_failed());
       status = 'selecting';
       console.error('Failed to read the shared novels file:', error);
     }
@@ -136,10 +135,10 @@
         const file = new File([novel.data], fileName(novel), { type: 'text/plain' });
         await addLoadedNovelDocumentFromFile(novel.fileType, file, novel.writingMode, novel.isEditLocked);
       }
-      toast.success(`${selectedEntries.length}件の小説を追加しました`);
+      toast.success(m.share_added_count({ count: selectedEntries.length }));
       await goto(resolve('/'));
     } catch (error) {
-      toast.error('共有された小説を追加できませんでした');
+      toast.error(m.share_add_failed());
       console.error('Failed to add shared novels:', error);
     } finally {
       isAdding = false;
@@ -150,9 +149,9 @@
 {#if status === 'ready'}
   <div class='flex min-h-full flex-col gap-4'>
     <Field.Set class='grow'>
-      <Field.Legend>追加する小説を選択</Field.Legend>
+      <Field.Legend>{m.share_receive_select()}</Field.Legend>
       <Field.Description>
-        受け取った小説です。追加するとこの端末の小説一覧に保存されます。
+        {m.share_receive_description()}
       </Field.Description>
       <Field.Group class='gap-4'>
         {#each entries as entry, index (index)}
@@ -165,13 +164,13 @@
               <Field.Content>
                 <Field.Title>
                   {entry.novel.title}
-                  {#if entry.isAdded}（追加済み）{/if}
+                  {#if entry.isAdded}{m.common_already_added()}{/if}
                 </Field.Title>
                 <Field.Description>
-                  {fileTypeLabels[entry.novel.fileType]}
-                  ／{writingModeLabels[entry.novel.writingMode]}
+                  {entry.novel.fileType === 'aozoratext' ? m.file_type_aozora() : m.file_type_plain()}
+                  ／{entry.novel.writingMode === 'horizontal-tb' ? m.writing_horizontal() : entry.novel.writingMode === 'vertical-lr' ? m.writing_vertical_lr() : m.writing_vertical_rl()}
                   ／{formatByteSize(entry.novel.data.byteLength)}
-                  {#if entry.novel.isEditLocked}／編集ロック{/if}
+                  {#if entry.novel.isEditLocked}{m.share_edit_locked_suffix()}{/if}
                 </Field.Description>
               </Field.Content>
             </Field.Field>
@@ -187,16 +186,16 @@
           entries = [];
           status = 'selecting';
         }}>
-        別の小説を受け取る
+        {m.share_receive_another()}
       </Button>
       <Button
         disabled={selectedCount === 0 || isAdding}
         size='lg'
         onclick={() => void handleClickAddButton()}>
         {#if isAdding}
-          <Spinner/> 追加中…
+          <Spinner/> {m.share_adding()}
         {:else}
-          追加
+          {m.share_add()}
         {/if}
       </Button>
     </div>
@@ -204,7 +203,7 @@
 {:else}
   <div class='flex flex-col gap-4'>
     <p class='text-sm text-muted-foreground'>
-      小説を送った人のQRコードを読み取るか、受け取った小説ファイルを選択してください。
+      {m.share_receive_hint()}
     </p>
     {#if cameraErrorMessage}
       <p class='text-sm text-destructive'>{cameraErrorMessage}</p>
@@ -214,19 +213,18 @@
     {/if}
     <div class='flex flex-col gap-2'>
       <Button disabled={status === 'loading'} size='lg' onclick={handleOpenScanner}>
-        <IconCamera/> QRコードを読み取る
+        <IconCamera/> {m.share_scan_qr()}
       </Button>
       <Button variant='outline' disabled={status === 'loading'} onclick={() => void handleClickSelectFileButton()}>
         {#if status === 'loading'}
-          <Spinner/> 読み込み中…
+          <Spinner/> {m.common_loading()}
         {:else}
-          <IconFileImport/> 小説ファイルを選択
+          <IconFileImport/> {m.share_select_file()}
         {/if}
       </Button>
     </div>
     <p class='text-sm text-muted-foreground'>
-      QRコードでの受け取りは、小説を送ってから1日以内に読み取ってください。
-      小説ファイルは保存した場所からいつでも選択できます。
+      {m.share_qr_note()} {m.share_file_note()}
     </p>
   </div>
 {/if}
@@ -234,9 +232,9 @@
 <Dialog.Root bind:open={isScannerDialogOpen}>
   <Dialog.Content class='max-h-[calc(100dvh-(--spacing(8)))] overflow-y-auto'>
     <Dialog.Header>
-      <Dialog.Title>QRコードを読み取る</Dialog.Title>
+      <Dialog.Title>{m.share_scan_qr()}</Dialog.Title>
       <Dialog.Description>
-        小説を送った人のQRコードを、枠の中に写してください。
+        {m.share_scan_qr_description()}
       </Dialog.Description>
     </Dialog.Header>
     <QrCodeScanner onReadQrCode={handleReadQrCode} onError={handleScannerError}/>

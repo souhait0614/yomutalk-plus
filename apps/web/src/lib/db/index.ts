@@ -1,5 +1,6 @@
 import type { RegisteredText } from '$lib/selectedText';
 import { parseAozoraText } from '@repo/novel-parser';
+import { m } from '$lib/paraglide/messages';
 import { copyRegisteredText } from '$lib/selectedText';
 import { computeContentHash } from '$lib/utils/hash';
 import { decodeTextFile } from '$lib/utils/textEncoding';
@@ -156,10 +157,10 @@ const updateLoadedNovelDocumentFromFile = async (
   await appDatabase.transaction('rw', appDatabase.loadedNovelDocuments, async () => {
     const document = await appDatabase.loadedNovelDocuments.get(id);
     if (!document) throw new Error('Novel document not found');
-    if (document.type === 'internal') throw new Error('アプリ内蔵小説は編集できません。');
-    if (document.isEditLocked) throw new Error('この小説は編集がロックされています。');
+    if (document.type === 'internal') throw new Error(m.editor_internal_not_editable());
+    if (document.isEditLocked) throw new Error(m.editor_edit_locked());
     if (expectedHash !== undefined && document.hash !== expectedHash) {
-      throw new Error('小説が別の画面で更新されました。再読み込みしてから編集してください。');
+      throw new Error(m.editor_stale_document());
     }
     await appDatabase.loadedNovelDocuments.put({
       id,
@@ -179,7 +180,7 @@ const setLoadedNovelDocumentEditLocked = async (id: string, isEditLocked: boolea
   await appDatabase.transaction('rw', appDatabase.loadedNovelDocuments, async () => {
     const document = await appDatabase.loadedNovelDocuments.get(id);
     if (!document) throw new Error('Novel document not found');
-    if (document.type === 'internal') throw new Error('アプリ内蔵小説は編集できません。');
+    if (document.type === 'internal') throw new Error(m.editor_internal_not_editable());
     await appDatabase.loadedNovelDocuments.put({ ...document, isEditLocked });
   });
 };

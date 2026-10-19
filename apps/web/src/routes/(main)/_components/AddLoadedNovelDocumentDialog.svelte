@@ -4,6 +4,7 @@
   import { IconFilePlus } from '@tabler/icons-svelte';
   import { resolve } from '$app/paths';
   import { internalNovelList, isInternalNovelVariantGroup, toInternalNovelVariantInfo } from '$lib/internalNovels';
+  import { m } from '$lib/paraglide/messages';
   import { Button, buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
   import * as Dialog from '$lib/shadcn-svelte/components/ui/dialog';
   import * as DropdownMenu from '$lib/shadcn-svelte/components/ui/dropdown-menu';
@@ -48,11 +49,11 @@
 <Dialog.Root bind:open>
   <Dialog.Content class='z-60'>
     <Dialog.Header>
-      <Dialog.Title>小説を追加</Dialog.Title>
+      <Dialog.Title>{m.nav_add_novel()}</Dialog.Title>
     </Dialog.Header>
     <div class='flex flex-col gap-4'>
       <div class='flex flex-col gap-2'>
-        <h3 class='text-sm font-medium'>アプリ内蔵小説</h3>
+        <h3 class='text-sm font-medium'>{m.library_built_in_novels()}</h3>
         {#each internalNovelList as entry (entry.id)}
           {#if isInternalNovelVariantGroup(entry)}
             <DropdownMenu.Root>
@@ -68,7 +69,7 @@
                     onSelect={() => void handleClickAddInternalNovelButton(toInternalNovelVariantInfo(entry, variant))}>
                     {variant.label}
                     {#if isAddedInternalNovel(variant.id)}
-                      （追加済み）
+                      {m.common_already_added()}
                     {/if}
                   </DropdownMenu.Item>
                 {/each}
@@ -81,23 +82,23 @@
               onclick={() => handleClickAddInternalNovelButton(entry)}>
               {entry.title}
               {#if isAddedInternalNovel(entry.id)}
-                （追加済み）
+                {m.common_already_added()}
               {/if}
             </Button>
           {/if}
         {:else}
-          <p class='text-sm text-muted-foreground'>アプリ内蔵小説はありません。</p>
+          <p class='text-sm text-muted-foreground'>{m.library_no_built_in_novels()}</p>
         {/each}
       </div>
       <div class='flex flex-col gap-2'>
-        <h3 class='text-sm font-medium'>ファイルから追加</h3>
+        <h3 class='text-sm font-medium'>{m.library_add_from_file()}</h3>
         <Button
           variant='outline'
           onclick={async () => {
             await onClickSelectAozoraTextFileButton(writingMode);
             open = false;
           }}>
-          青空文庫形式テキストファイル
+          {m.file_type_aozora()}
         </Button>
         <Button
           variant='outline'
@@ -105,7 +106,7 @@
             await onClickSelectPlainTextFileButton(writingMode);
             open = false;
           }}>
-          プレーンテキストファイル
+          {m.file_type_plain()}
         </Button>
       </div>
       <Separator class='my-4'/>
@@ -113,7 +114,7 @@
         variant='outline'
         href={`${resolve('/(menu)/novels')}?create`}
         onclick={() => open = false}>
-        <IconFilePlus/> 新しい小説を作成
+        <IconFilePlus/> {m.novel_create_new()}
       </Button>
     </div>
   </Dialog.Content>

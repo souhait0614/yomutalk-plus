@@ -1,0 +1,17 @@
+{
+  "name": "Yomutalk Plus",
+  "short_name": "Yomutalk Plus",
+  "lang": "en",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#83ACD8",
+  "icons": [
+    { "src": "/images/icon-pwa-128.png", "sizes": "128x128", "type": "image/png", "purpose": "maskable" },
+    { "src": "/images/icon-pwa-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "scope": "/",
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
+}

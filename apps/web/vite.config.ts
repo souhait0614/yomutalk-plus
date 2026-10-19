@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import adapter from '@sveltejs/adapter-cloudflare';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -18,6 +19,13 @@ export default defineConfig({
     include: ['dexie-export-import'],
   },
   plugins: [
+    paraglideVitePlugin({
+      project: './project.inlang',
+      outdir: './src/lib/paraglide',
+      emitTsDeclarations: true,
+      // 明示的な選択 (cookie) → ブラウザの言語 (preferredLanguage) → 日本語 (baseLocale) の順で解決する
+      strategy: ['cookie', 'preferredLanguage', 'baseLocale'],
+    }),
     tailwindcss(),
     sveltekit({
       compilerOptions: {
@@ -64,23 +72,7 @@ export default defineConfig({
     }),
     SvelteKitPWA({
       registerType: 'prompt',
-      manifest: {
-        name: 'よむとーく＋',
-        short_name: 'よむとーく＋',
-        lang: 'ja',
-        start_url: '/',
-        display: 'standalone',
-        theme_color: '#83ACD8',
-        icons: [
-          { src: '/images/icon-pwa-128.png', sizes: '128x128', type: 'image/png', purpose: 'maskable' },
-          { src: '/images/icon-pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-        scope: '/',
-        handle_links: 'preferred',
-        launch_handler: {
-          client_mode: 'focus-existing',
-        },
-      },
+      manifest: false,
     }),
   ],
 });
