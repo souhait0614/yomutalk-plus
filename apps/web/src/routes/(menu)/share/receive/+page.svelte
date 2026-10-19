@@ -148,8 +148,8 @@
 </script>
 
 {#if status === 'ready'}
-  <div class='flex flex-col gap-4'>
-    <Field.Set>
+  <div class='flex min-h-full flex-col gap-4'>
+    <Field.Set class='grow'>
       <Field.Legend>追加する小説を選択</Field.Legend>
       <Field.Description>
         受け取った小説です。追加するとこの端末の小説一覧に保存されます。
@@ -179,7 +179,7 @@
         {/each}
       </Field.Group>
     </Field.Set>
-    <div class='flex justify-between gap-2'>
+    <div class='sticky bottom-4 flex flex-col gap-2'>
       <Button
         variant='outline'
         disabled={isAdding}

@@ -1,9 +1,8 @@
 <script lang='ts'>
   import type { LoadedNovelDocument, LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
   import { composeAozoraText, splitAozoraText } from '@repo/novel-parser';
-  import { IconCheck, IconChevronLeft, IconDeviceFloppy, IconList, IconReload, IconTrash } from '@tabler/icons-svelte';
+  import { IconCheck, IconChevronLeft, IconDeviceFloppy, IconReload, IconTrash } from '@tabler/icons-svelte';
   import { beforeNavigate, goto } from '$app/navigation';
-  import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { appDatabase, countBookmarksByDocumentId, deleteBookmarksByDocumentId, updateLoadedNovelDocumentFromFile } from '$lib/db';
   import * as AlertDialog from '$lib/shadcn-svelte/components/ui/alert-dialog';
@@ -148,7 +147,6 @@
   <div class='flex flex-col items-center gap-4 py-16'>
     <p role='alert'>{loadError}</p>
     <Button variant='outline' onclick={() => window.location.reload()}><IconReload/> 再読み込み</Button>
-    <Button variant='ghost' href={resolve('/(menu)/novels')}><IconList/> 一覧</Button>
   </div>
 {:else}
   <div class='grid size-full grid-rows-[auto_minmax(0,1fr)] gap-2'>

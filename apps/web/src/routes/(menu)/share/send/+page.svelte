@@ -49,8 +49,8 @@
   };
 </script>
 
-<div class='flex flex-col gap-4'>
-  <Field.Set>
+<div class='flex min-h-full flex-col gap-4'>
+  <Field.Set class='grow'>
     <Field.Legend>送る小説を選択</Field.Legend>
     <Field.Description>
       送る小説を1つ以上選択してください
@@ -64,9 +64,6 @@
               (value) => selectedIds.set(loadedNovelDocument.id, value)}/>
             <Field.Content>
               <Field.Title>{loadedNovelDocument.title}</Field.Title>
-              {#if loadedNovelDocument.type === 'file' && loadedNovelDocument.isEditLocked}
-                <Field.Description>編集ロック中（送り先にも引き継がれます）</Field.Description>
-              {/if}
             </Field.Content>
           </Field.Field>
         </Field.Label>
@@ -75,7 +72,7 @@
       {/each}
     </Field.Group>
   </Field.Set>
-  <div class='flex justify-end'>
+  <div class='sticky bottom-4 flex flex-col gap-2'>
     <Button
       disabled={selectedCount === 0 || isPreparing}
       size='lg'

@@ -231,11 +231,11 @@
               '>
               <span>{document.fileType === 'aozoratext' ? '青空文庫形式' : 'プレーンテキスト'}</span>
               {#if document.type === 'internal'}<Badge variant='outline'>内蔵</Badge>{/if}
-              {#if document.type === 'file' && document.isEditLocked}
-                <Badge variant='outline' title='編集がロックされています'><IconLock/> ロック中</Badge>
-              {/if}
             </div>
           </div>
+          {#if document.type === 'file' && document.isEditLocked}
+            <Badge variant='outline'><IconLock/> 編集ロック</Badge>
+          {/if}
           {#if document.type === 'file' && !document.isEditLocked}
             <Button
               variant='ghost'
