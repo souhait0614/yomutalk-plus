@@ -17,7 +17,7 @@
     "@repo/tsconfig": "workspace:*",
     "@taiyme/eslint-config": "1.0.1",
     "@types/node": "catalog:",
-    "@typescript-eslint/parser": "8.71.1",
+    "@typescript-eslint/parser": "8.71.2",
     "eslint": "catalog:",
     "eslint-config-flat-gitignore": "2.4.0",
     "eslint-plugin-better-tailwindcss": "catalog:",
