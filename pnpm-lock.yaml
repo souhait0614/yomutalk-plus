@@ -274,6 +274,9 @@ importers:
       dexie-svelte-query:
         specifier: 1.0.0
         version: 1.0.0(dexie@4.4.6)(svelte@5.57.2(@typescript-eslint/types@8.71.1))
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       lean-qr:
         specifier: 2.7.4
         version: 2.7.4

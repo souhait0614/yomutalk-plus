@@ -1,6 +1,6 @@
 <script lang='ts'>
   import type { NovelInline } from '@repo/novel-parser';
-  import type { Bookmark, NovelWritingMode } from '$lib/db';
+  import type { Bookmark, LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
   import type { InternalNovelInfo } from '$lib/internalNovels';
   import type { ManuallyEnteredText, RegisteredText, SelectedNovelText } from '$lib/selectedText';
   import { classifySentenceTextType, parseAozoraText, parsePlainText } from '@repo/novel-parser';
@@ -24,8 +24,9 @@
   import { copyRegisteredText } from '$lib/selectedText';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { ttsPresetEntries } from '$lib/tts';
-  import { pickSingleFile } from '$lib/utils/misc';
+  import { FileNotSelectedError, pickSingleFile } from '$lib/utils/misc';
   import { decodeTextFile } from '$lib/utils/textEncoding';
+  import { extractTextFileFromZip, isZipFile, ZipExtractionError } from '$lib/utils/zip';
   import { stateQuery } from 'dexie-svelte-query';
   import { onCleanup, PersistedState, useDebounce } from 'runed';
   import { tick, untrack } from 'svelte';
@@ -100,18 +101,41 @@
     open: () => isOpenManageSelectedTextsDialog = true,
   });
 
-  const handleClickSelectAozoraTextFileButton = async (writingMode: NovelWritingMode) => {
-    const file = await pickSingleFile({
-      accept: 'text/plain',
-    });
-    pendingCurrentDocumentId = await addLoadedNovelDocumentFromFile('aozoratext', file, writingMode);
+  const getAddNovelFileErrorMessage = (error: unknown): string => {
+    if (!(error instanceof ZipExtractionError)) return m.library_add_file_failed();
+    if (error.reason === 'no-text-file') return m.error_zip_no_text_file();
+    if (error.reason === 'multiple-text-files') return m.error_zip_multiple_text_files();
+    return m.error_zip_invalid();
   };
-  const handleClickSelectPlainTextFileButton = async (writingMode: NovelWritingMode) => {
-    const file = await pickSingleFile({
-      accept: 'text/plain',
-    });
-    pendingCurrentDocumentId = await addLoadedNovelDocumentFromFile('plaintext', file, writingMode);
+
+  const handleClickAddNovelFileButton = async (
+    fileType: LoadedNovelDocumentFileType,
+    writingMode: NovelWritingMode,
+  ): Promise<boolean> => {
+    try {
+      const pickedFile = await pickSingleFile({
+        accept: fileType === 'aozoratext' ? '.txt,.zip' : 'text/plain',
+      });
+      const file = fileType === 'aozoratext' && await isZipFile(pickedFile)
+        ? await extractTextFileFromZip(pickedFile)
+        : pickedFile;
+      pendingCurrentDocumentId = await addLoadedNovelDocumentFromFile(fileType, file, writingMode);
+      return true;
+    } catch (error) {
+      if (error instanceof FileNotSelectedError) return false;
+      toast.error(getAddNovelFileErrorMessage(error));
+      console.error('Failed to add the novel from the file:', error);
+      return false;
+    }
   };
+
+  const handleClickSelectAozoraTextFileButton = (writingMode: NovelWritingMode) => (
+    handleClickAddNovelFileButton('aozoratext', writingMode)
+  );
+
+  const handleClickSelectPlainTextFileButton = (writingMode: NovelWritingMode) => (
+    handleClickAddNovelFileButton('plaintext', writingMode)
+  );
 
   const handleClickAddInternalNovelButton = async (novel: InternalNovelInfo, writingMode: NovelWritingMode) => {
     try {

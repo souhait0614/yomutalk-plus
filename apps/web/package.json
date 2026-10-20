@@ -50,6 +50,7 @@
     "dexie": "4.4.6",
     "dexie-export-import": "4.4.1",
     "dexie-svelte-query": "1.0.0",
+    "fflate": "0.8.3",
     "lean-qr": "2.7.4",
     "mode-watcher": "1.1.0",
     "runed": "0.37.1",

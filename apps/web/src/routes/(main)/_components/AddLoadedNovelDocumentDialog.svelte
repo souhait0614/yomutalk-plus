@@ -13,8 +13,8 @@
   interface AddLoadedNovelDocumentDialogProps {
     open: boolean;
     readonly loadedNovelDocuments: LoadedNovelDocument[];
-    readonly onClickSelectAozoraTextFileButton: (writingMode: NovelWritingMode) => Promise<void>;
-    readonly onClickSelectPlainTextFileButton: (writingMode: NovelWritingMode) => Promise<void>;
+    readonly onClickSelectAozoraTextFileButton: (writingMode: NovelWritingMode) => Promise<boolean>;
+    readonly onClickSelectPlainTextFileButton: (writingMode: NovelWritingMode) => Promise<boolean>;
     readonly onClickAddInternalNovelButton: (novel: InternalNovelInfo, writingMode: NovelWritingMode) => Promise<void>;
   }
 
@@ -95,16 +95,14 @@
         <Button
           variant='outline'
           onclick={async () => {
-            await onClickSelectAozoraTextFileButton(writingMode);
-            open = false;
+            if (await onClickSelectAozoraTextFileButton(writingMode)) open = false;
           }}>
           {m.file_type_aozora()}
         </Button>
         <Button
           variant='outline'
           onclick={async () => {
-            await onClickSelectPlainTextFileButton(writingMode);
-            open = false;
+            if (await onClickSelectPlainTextFileButton(writingMode)) open = false;
           }}>
           {m.file_type_plain()}
         </Button>
