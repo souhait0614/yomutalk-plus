@@ -30,8 +30,8 @@
 
 ## 必要環境
 
-- Node.js 24.21.0
-- pnpm 12.9.1
+- Node.js
+- pnpm
 
 バージョンは `mise.toml` で固定しています。mise を使う場合はリポジトリ直下で `mise install` を実行してください。
 
