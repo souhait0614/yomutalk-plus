@@ -3,6 +3,7 @@ export { composeAozoraText, parseAozoraText, splitAozoraText } from './aozoraTex
 export { parsePlainText } from './plainText.ts';
 export { classifySentenceTextType } from './shared.ts';
 export type {
+  BlankBlock,
   BracketInline,
   BracketKind,
   GaijiInline,

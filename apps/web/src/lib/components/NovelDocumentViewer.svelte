@@ -80,7 +80,8 @@
   const initialMeasurements = untrack(() => {
     const cached = measurementCache?.current;
     if (!browser || cached?.width !== window.innerWidth || cached.height !== window.innerHeight
-      || cached.writingMode !== writingMode || cached.documentHash !== documentHash) return [];
+      || cached.writingMode !== writingMode || cached.documentHash !== documentHash
+      || cached.items.length !== novelDocument.blocks.length) return [];
     return cached.items;
   });
 
@@ -317,7 +318,12 @@
     const { blockIndex, sentenceIndex } = position;
     const targetBlock = novelDocument.blocks[blockIndex];
     const element = getContainerElement();
-    if (!targetBlock?.sentences[sentenceIndex] || !element) return;
+    if (!targetBlock || !element) return;
+    if (targetBlock.type === 'blank') {
+      if (!options.wholeBlock) return;
+    } else if (!targetBlock.sentences[sentenceIndex]) {
+      return;
+    }
 
     const generation = ++jumpGeneration;
     const scrollToBlock = () => {
@@ -362,8 +368,9 @@
     if (generation !== jumpGeneration) return;
     const targetBlock = novelDocument.blocks[blockIndex];
     const element = getContainerElement();
-    if (!element || !targetBlock?.sentences.some((sentence) => sentence.inlines.length > 0)
-      || element.clientWidth === 0 || element.clientHeight === 0) return;
+    if (!element || !targetBlock || element.clientWidth === 0 || element.clientHeight === 0) return;
+    if (targetBlock.type !== 'blank'
+      && !targetBlock.sentences.some((sentence) => sentence.inlines.length > 0)) return;
     const blockElement = element.querySelector<HTMLElement>(`[data-novel-block='${blockIndex}']`);
     if (blockElement) {
       const containerRect = element.getBoundingClientRect();
@@ -477,7 +484,7 @@
 
   const getSelectedTextType = ({ start }: NovelSelectionRange) => {
     const block = novelDocument.blocks[start.blockIndex];
-    if (!block) return 'narration';
+    if (!block || block.type === 'blank') return 'narration';
     return block.sentences[start.sentenceIndex]?.textType ?? 'narration';
   };
 
@@ -582,7 +589,12 @@
           style:height={scrollDirection === 'horizontal' ? 'calc(100% - 160px)' : undefined}
           data-index={blockIndex}
           use:measureBlock>
-          {#if block.type === 'heading'}
+          {#if block.type === 'blank'}
+            <p
+              aria-hidden='true'
+              data-novel-block={blockIndex}
+              style:min-block-size='1lh'></p>
+          {:else if block.type === 'heading'}
             {#if block.level === 1}
               <h3
                 data-novel-block={blockIndex}

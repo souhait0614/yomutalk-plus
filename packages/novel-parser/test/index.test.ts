@@ -16,7 +16,9 @@ test('composes new Aozora text without treating metadata as body', () => {
   assert.equal(novel.title, '題名');
   assert.equal(novel.author, '著者');
   assert.equal(novel.blocks.length, 1);
-  assert.equal(novel.blocks[0]?.sentences[0]?.inlines[0]?.type, 'ruby');
+  const firstBlock = novel.blocks[0];
+  assert.ok(firstBlock?.type === 'paragraph');
+  assert.equal(firstBlock.sentences[0]?.inlines[0]?.type, 'ruby');
   assert.equal(splitAozoraText(source).body, '｜本文《ほんぶん》。');
 });
 
@@ -33,7 +35,7 @@ test('keeps newlines after the Aozora body separator in the header', () => {
     const sourceLines: number[] = [];
     parseAozoraText(source, { onBlock: (lineIndex) => sourceLines.push(lineIndex) });
     const firstBodyLine = 5 + gap.length;
-    assert.deepEqual(sourceLines, [firstBodyLine, firstBodyLine + 2]);
+    assert.deepEqual(sourceLines, [firstBodyLine, firstBodyLine + 1, firstBodyLine + 2]);
   }
 });
 
@@ -111,6 +113,7 @@ test('converts plain text metadata and paragraphs', () => {
           { textType: 'narration', inlines: [{ type: 'text', value: '最初の段落' }] },
         ],
       },
+      { type: 'blank' },
       {
         type: 'paragraph',
         sentences: [
@@ -121,12 +124,30 @@ test('converts plain text metadata and paragraphs', () => {
   });
 });
 
-test('reports plain-text block source lines without counting empty lines', () => {
+test('keeps plain-text blank lines without treating the final newline as one', () => {
+  const options = { title: '題名', author: null };
+  const novel = parsePlainText('最初。\n\n\n次の。\n', options);
+  assert.deepEqual(novel.blocks.map((block) => block.type), [
+    'paragraph',
+    'blank',
+    'blank',
+    'paragraph',
+  ]);
+
+  const sourceLines: number[] = [];
+  parsePlainText('最初。\r\n \r\n\r\n次。\r\n', {
+    ...options,
+    onBlock: (lineIndex) => sourceLines.push(lineIndex),
+  });
+  assert.deepEqual(sourceLines, [0, 1, 2, 3]);
+});
+
+test('reports plain-text block source lines including empty lines', () => {
   const source = '\uFEFF最初。\r\n \r\n\r\n次。\r終わり。';
   const sourceLines: number[] = [];
   const options = { title: '題名', author: null };
   const novel = parsePlainText(source, { ...options, onBlock: (lineIndex) => sourceLines.push(lineIndex) });
-  assert.deepEqual(sourceLines, [0, 3, 4]);
+  assert.deepEqual(sourceLines, [0, 1, 2, 3, 4]);
   assert.deepEqual(novel, parsePlainText(source, options));
 });
 
@@ -139,7 +160,7 @@ test('reports Aozora block source lines excluding headers, annotations, and foot
   ].join('\n');
   const sourceLines: number[] = [];
   const novel = parseAozoraText(source, { onBlock: (lineIndex) => sourceLines.push(lineIndex) });
-  assert.deepEqual(sourceLines, [8, 10]);
+  assert.deepEqual(sourceLines, [8, 9, 10]);
   assert.deepEqual(novel, parseAozoraText(source));
 
   const unheadedLines: number[] = [];
@@ -168,11 +189,36 @@ test('converts Aozora headings, ruby, and gaiji', () => {
 
   assert.equal(novel.title, '配布用タイトル');
   assert.equal(novel.author, '配布用著者');
-  assert.equal(novel.blocks.length, 2);
+  assert.equal(novel.blocks.length, 3);
   assert.equal(novel.blocks[0]?.type, 'heading');
-  const paragraph = novel.blocks[1];
+  assert.deepEqual(novel.blocks[1], { type: 'blank' });
+  const paragraph = novel.blocks[2];
   assert.ok(paragraph?.type === 'paragraph');
   assert.ok(paragraph.sentences.length > 0);
+});
+
+test('keeps Aozora blank lines and drops blanks around metadata', () => {
+  const source = [
+    '題名',
+    '著者',
+    '',
+    '--------------------',
+    '記号',
+    '--------------------',
+    '一行目',
+    '',
+    '',
+    '三行目',
+    '',
+    '底本：底本',
+  ].join('\n');
+  const sourceLines: number[] = [];
+  const novel = parseAozoraText(source, { onBlock: (lineIndex) => sourceLines.push(lineIndex) });
+  assert.deepEqual(novel.blocks.map((block) => block.type), ['paragraph', 'blank', 'blank', 'paragraph']);
+  assert.deepEqual(sourceLines, [6, 7, 8, 9]);
+
+  const unheaded = parseAozoraText('一行目\n\n三行目\n');
+  assert.deepEqual(unheaded.blocks.map((block) => block.type), ['paragraph', 'blank', 'paragraph']);
 });
 
 test('converts Aozora indentation ranges and end alignment', () => {
@@ -217,7 +263,7 @@ test('converts the provided samples', async () => {
     author: '夏目漱石',
   });
   const aozoraNovel = parseAozoraText(aozoraSource);
-  const firstAozoraParagraph = aozoraNovel.blocks[1];
+  const firstAozoraParagraph = aozoraNovel.blocks.find((block) => block.type === 'paragraph');
 
   assert.equal(plainNovel.blocks.length > 0, true);
   assert.equal(aozoraNovel.title, '吾輩は猫である');

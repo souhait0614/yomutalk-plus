@@ -54,7 +54,11 @@ export interface HeadingBlock {
   align?: 'end';
 }
 
-export type NovelBlock = ParagraphBlock | HeadingBlock;
+export interface BlankBlock {
+  type: 'blank';
+}
+
+export type NovelBlock = ParagraphBlock | HeadingBlock | BlankBlock;
 
 export interface NovelDocument {
   format: NovelFormat;

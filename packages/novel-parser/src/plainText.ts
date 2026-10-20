@@ -6,12 +6,16 @@ export function parsePlainText(
   options: PlainTextOptions,
 ): NovelDocument {
   const blocks: NovelBlock[] = [];
-  for (const [lineIndex, line] of normalizeSource(source).split('\n').entries()) {
-    if (line.trim() === '') continue;
-    blocks.push({
-      type: 'paragraph',
-      sentences: splitSentences([{ type: 'text', value: line }]),
-    });
+  const lines = normalizeSource(source).split('\n');
+  // NOTE: 末尾の改行は最後の行の終端であり、空行ではない
+  if (lines.at(-1) === '') lines.pop();
+  for (const [lineIndex, line] of lines.entries()) {
+    blocks.push(line.trim() === ''
+      ? { type: 'blank' }
+      : {
+        type: 'paragraph',
+        sentences: splitSentences([{ type: 'text', value: line }]),
+      });
     options.onBlock?.(lineIndex);
   }
   return {

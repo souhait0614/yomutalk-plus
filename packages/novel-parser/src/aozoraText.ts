@@ -61,11 +61,22 @@ export function parseAozoraText(
   const bodyLineOffset = metadata.header.split('\n').length - 1;
   const lines = metadata.body.split('\n');
   const footerIndex = lines.findIndex((line) => AOZORA_FOOTER.test(line));
-  const bodyEnd = footerIndex === -1 ? lines.length : footerIndex;
+  let bodyEnd = footerIndex === -1 ? lines.length : footerIndex;
+  // NOTE: 底本情報やファイル末尾に続く空行は本文の間隔ではない
+  while (bodyEnd > 0 && lines[bodyEnd - 1]?.trim() === '') bodyEnd -= 1;
   let indent: number | undefined;
   const blocks: NovelBlock[] = [];
 
   for (const [lineIndex, line] of lines.slice(0, bodyEnd).entries()) {
+    if (line.trim() === '') {
+      // NOTE: 本文先頭の空行はファイル整形によるものとして扱う
+      if (blocks.length > 0) {
+        blocks.push({ type: 'blank' });
+        options.onBlock?.(bodyLineOffset + lineIndex);
+      }
+      continue;
+    }
+
     const lineFormat = getAozoraLineFormat(line, indent);
 
     if (lineFormat.content.trim() !== '') {
