@@ -218,6 +218,8 @@
   "settings_restore_confirm_title": "Restore data?",
   "settings_restore_description": "Restore novels and bookmarks from a {ext} file",
   "settings_restore_submit": "Restore",
+  "settings_shift_main_by_gesture": "Shift text by flick/scroll",
+  "settings_shift_main_by_gesture_description": "When the control panel covers the text, flick or scroll to move the text up and select the hidden part",
   "settings_show_ruby": "Show ruby",
   "settings_theme": "Theme",
   "share_add": "Add",

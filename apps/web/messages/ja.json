@@ -218,6 +218,8 @@
   "settings_restore_confirm_title": "データを復元しますか？",
   "settings_restore_description": "{ext}形式のファイルから小説・ブックマークのデータを復元します",
   "settings_restore_submit": "復元",
+  "settings_shift_main_by_gesture": "フリック／スクロールで本文をずらす",
+  "settings_shift_main_by_gesture_description": "操作パネルが本文に重なっているとき、フリック／スクロールで本文を上にずらして隠れた部分を選択できるようにします",
   "settings_show_ruby": "ルビを表示",
   "settings_theme": "テーマ",
   "share_add": "追加",

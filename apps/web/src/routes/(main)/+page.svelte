@@ -5,7 +5,7 @@
   import type { ManuallyEnteredText, RegisteredText, SelectedNovelText } from '$lib/selectedText';
   import { classifySentenceTextType, parseAozoraText, parsePlainText } from '@repo/novel-parser';
   import { createTtsController, isTtsAbortError } from '@repo/tts';
-  import { autoStartPlayback, ttsPreset } from '$lib/appSettings.svelte';
+  import { autoStartPlayback, shiftMainByGesture, ttsPreset } from '$lib/appSettings.svelte';
   import NovelDocumentViewer from '$lib/components/NovelDocumentViewer.svelte';
   import { defaultTtsPresetKey } from '$lib/constants';
   import { setAddLoadedNovelDocumentDialogContext } from '$lib/contexts/addLoadedNovelDocumentDialog';
@@ -177,10 +177,11 @@
   const currentWritingMode = $derived(loadedNovelDocuments[resolvedCurrentTabIndex]?.writingMode);
   const isVerticalWritingMode = $derived(currentWritingMode === 'vertical-rl' || currentWritingMode === 'vertical-lr');
   const isFooterOverlappingMain = $derived(selectedTextMap.size > 0 && !uiCollapsed.current);
+  const isMainShiftEnabled = $derived(shiftMainByGesture.current && isFooterOverlappingMain);
 
   let shiftedUpDocumentId = $state<string>();
   const isMainShiftedUp = $derived(
-    isFooterOverlappingMain && isVerticalWritingMode
+    isMainShiftEnabled && isVerticalWritingMode
       && shiftedUpDocumentId !== undefined && shiftedUpDocumentId === currentDocumentId,
   );
 
@@ -198,14 +199,14 @@
   let isSelectionChangedDuringFlick = false;
 
   $effect(() => {
-    if (isFooterOverlappingMain) return;
+    if (isMainShiftEnabled) return;
     shiftedUpDocumentId = undefined;
     pendingWheelDeltaY = 0;
     flickGesture = undefined;
   });
 
   const handleMainWheel = (event: WheelEvent) => {
-    if (!isFooterOverlappingMain || !isVerticalWritingMode) return;
+    if (!isMainShiftEnabled || !isVerticalWritingMode) return;
     if (event.deltaY === 0) return;
 
     const now = performance.now();
@@ -233,7 +234,7 @@
   const handleMainTouchStart = (event: TouchEvent) => {
     flickGesture = undefined;
     isSelectionChangedDuringFlick = false;
-    if (!isFooterOverlappingMain || !isVerticalWritingMode) return;
+    if (!isMainShiftEnabled || !isVerticalWritingMode) return;
     if (event.touches.length !== 1) return;
 
     const touch = event.touches.item(0);

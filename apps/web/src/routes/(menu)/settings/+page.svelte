@@ -1,7 +1,7 @@
 <script lang='ts'>
   import { IconDatabaseExport, IconDatabaseImport, IconInfoCircle, IconTrashX } from '@tabler/icons-svelte';
   import { resolve } from '$app/paths';
-  import { novelDocumentViewFontSize, showRuby } from '$lib/appSettings.svelte';
+  import { novelDocumentViewFontSize, shiftMainByGesture, showRuby } from '$lib/appSettings.svelte';
   import NavigationItem from '$lib/components/NavigationItem.svelte';
   import { dexieExportDataFileExtension } from '$lib/constants';
   import { appDatabase, resetDatabase } from '$lib/db';
@@ -140,6 +140,15 @@
     <Field.Field orientation='horizontal'>
       <Field.Label for='show-ruby'>{m.settings_show_ruby()}</Field.Label>
       <Switch id='show-ruby' bind:checked={showRuby.current}/>
+    </Field.Field>
+    <Field.Field orientation='horizontal'>
+      <Field.Content>
+        <Field.Label for='shift-main-by-gesture'>{m.settings_shift_main_by_gesture()}</Field.Label>
+        <Field.Description>
+          {m.settings_shift_main_by_gesture_description()}
+        </Field.Description>
+      </Field.Content>
+      <Switch id='shift-main-by-gesture' bind:checked={shiftMainByGesture.current}/>
     </Field.Field>
     <Field.Field orientation='horizontal'>
       <Field.Label for='theme'>{m.settings_theme()}</Field.Label>
