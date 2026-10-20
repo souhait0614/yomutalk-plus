@@ -108,7 +108,15 @@
 </script>
 
 <div class='flex flex-col gap-2'>
-  <Field.Group>
+  <Field.Group class='p-4'>
+    <Field.Field orientation='horizontal'>
+      <Field.Label for='theme'>{m.settings_theme()}</Field.Label>
+      <NativeSelect id='theme' bind:value={getCurrentTheme, setCurrentTheme}>
+        <NativeSelectOption value='system'>{m.theme_system()}</NativeSelectOption>
+        <NativeSelectOption value='light'>{m.theme_light()}</NativeSelectOption>
+        <NativeSelectOption value='dark'>{m.theme_dark()}</NativeSelectOption>
+      </NativeSelect>
+    </Field.Field>
     <Field.Field orientation='horizontal'>
       <Field.Label for='language'>{m.settings_language()}</Field.Label>
       <NativeSelect id='language' bind:value={getCurrentLocale, setCurrentLocale}>
@@ -138,7 +146,12 @@
       </ToggleGroup.Root>
     </Field.Field>
     <Field.Field orientation='horizontal'>
-      <Field.Label for='show-ruby'>{m.settings_show_ruby()}</Field.Label>
+      <Field.Content>
+        <Field.Label for='show-ruby'>{m.settings_show_ruby()}</Field.Label>
+        <Field.Description>
+          {m.settings_show_ruby_description()}
+        </Field.Description>
+      </Field.Content>
       <Switch id='show-ruby' bind:checked={showRuby.current}/>
     </Field.Field>
     <Field.Field orientation='horizontal'>
@@ -149,14 +162,6 @@
         </Field.Description>
       </Field.Content>
       <Switch id='shift-main-by-gesture' bind:checked={shiftMainByGesture.current}/>
-    </Field.Field>
-    <Field.Field orientation='horizontal'>
-      <Field.Label for='theme'>{m.settings_theme()}</Field.Label>
-      <NativeSelect id='theme' bind:value={getCurrentTheme, setCurrentTheme}>
-        <NativeSelectOption value='system'>{m.theme_system()}</NativeSelectOption>
-        <NativeSelectOption value='light'>{m.theme_light()}</NativeSelectOption>
-        <NativeSelectOption value='dark'>{m.theme_dark()}</NativeSelectOption>
-      </NativeSelect>
     </Field.Field>
   </Field.Group>
   <Separator/>

@@ -15,7 +15,6 @@
   import {
     decodeSharedNovels,
     downloadSharedNovels,
-    formatByteSize,
     parseSharedNovelsQrText,
   } from '$lib/sharedNovels';
   import { computeContentHash } from '$lib/utils/hash';
@@ -166,12 +165,6 @@
                   {entry.novel.title}
                   {#if entry.isAdded}{m.common_already_added()}{/if}
                 </Field.Title>
-                <Field.Description>
-                  {entry.novel.fileType === 'aozoratext' ? m.file_type_aozora() : m.file_type_plain()}
-                  ／{entry.novel.writingMode === 'horizontal-tb' ? m.writing_horizontal() : entry.novel.writingMode === 'vertical-lr' ? m.writing_vertical_lr() : m.writing_vertical_rl()}
-                  ／{formatByteSize(entry.novel.data.byteLength)}
-                  {#if entry.novel.isEditLocked}{m.share_edit_locked_suffix()}{/if}
-                </Field.Description>
               </Field.Content>
             </Field.Field>
           </Field.Label>
