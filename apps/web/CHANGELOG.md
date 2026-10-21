@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.0](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.0.0...web-v1.1.0) (2026-10-21)
+
+
+### Features
+
+* metaを設定 ([333f3c4](https://github.com/souhait0614/yomutalk-plus/commit/333f3c40ff012f824c3ed159345749f5a7f2d715))
+* 本文をずらす機能のオンオフを追加 ([eb7bcbb](https://github.com/souhait0614/yomutalk-plus/commit/eb7bcbbedf5c5f64ef25c25ae042d8dd81077ff5))
+* 青空文庫のzipから小説を追加できるように改修 ([b95c82b](https://github.com/souhait0614/yomutalk-plus/commit/b95c82bf34590e1c6baa06a8a716daf4d4f595f2))
+
+
+### Bug Fixes
+
+* **deps:** update npm production dependencies (non-major) ([#12](https://github.com/souhait0614/yomutalk-plus/issues/12)) ([40a8c80](https://github.com/souhait0614/yomutalk-plus/commit/40a8c8048e9721638d64ca2c561d0315c3abd642))
+* 改行のみの行を本文に表示できるように修正 ([c53bcb5](https://github.com/souhait0614/yomutalk-plus/commit/c53bcb5362efe90d753b6811934100f2491b1710))
+* 表示周りの細かい修正 ([6d85336](https://github.com/souhait0614/yomutalk-plus/commit/6d85336be22ce9a2101fabbd203a512b19d22109))
+
 ## 1.0.0 (2026-10-19)
 
 
