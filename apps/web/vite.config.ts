@@ -68,6 +68,11 @@ export default defineConfig({
           dest: 'images',
           rename: { stripBase: true },
         },
+        {
+          src: fileURLToPath(import.meta.resolve('@repo/assets/app-icons/icon-256.png')),
+          dest: 'images',
+          rename: { stripBase: true },
+        },
       ],
     }),
     SvelteKitPWA({

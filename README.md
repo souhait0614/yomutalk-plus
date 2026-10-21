@@ -62,13 +62,14 @@ pnpm dev
 `apps/web/.env` に次の環境変数を設定します。
 
 ```env
+PUBLIC_BASE_URL=...
 PUBLIC_VOICEVOX_ENGINE_API_ENABLED=true
 VOICEVOX_ENGINE_API_URL=...
 VOICEVOX_ENGINE_API_BEARER_TOKEN=...
 ```
 
-- `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` は必須です。未設定の場合はビルドに失敗します。
-  - `true` の場合のみ VOICEVOX の TTS モジュールを読み込み、音声合成 API（`/api/tts/voicevox`）を有効にします。それ以外の値では、モジュールをクライアントのバンドルから除外し、API は 404 を返します。
+- `PUBLIC_BASE_URL` と `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` は必須です。未設定の場合はビルドに失敗します。
+  - `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` が `true` の場合のみ VOICEVOX の TTS モジュールを読み込み、音声合成 API（`/api/tts/voicevox`）を有効にします。それ以外の値では、モジュールをクライアントのバンドルから除外し、API は 404 を返します。
   - ビルド時に埋め込まれる（`$env/static/public`）ため、値を変更した場合は再ビルドが必要です。
 - `VOICEVOX_ENGINE_API_URL` と `VOICEVOX_ENGINE_API_BEARER_TOKEN` は VOICEVOX を有効にする場合に設定します。
   - どちらもサーバー側（`$env/dynamic/private`）だけで参照され、クライアントには渡りません。

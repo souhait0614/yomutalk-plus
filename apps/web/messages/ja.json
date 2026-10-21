@@ -1,5 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app_description": "あのテキスト読み上げアプリっぽいWebアプリ",
   "app_name": "よむとーく＋",
   "app_update_available": "アプリの更新あり",
   "bookmark_add": "ブックマークに追加",

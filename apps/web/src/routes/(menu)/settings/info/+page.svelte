@@ -1,5 +1,4 @@
 <script lang='ts'>
-  import appIcon from '@repo/assets/app-icons/icon-256.png?url&no-inline';
   import { IconBrandGithub, IconExternalLink, IconWorld } from '@tabler/icons-svelte';
   import NavigationItem from '$lib/components/NavigationItem.svelte';
   import { m } from '$lib/paraglide/messages';
@@ -14,7 +13,7 @@
     <h2 class='sr-only scroll-m-20 text-xl tracking-tight'>{m.info_app_section()}</h2>
     <div class='flex flex-col items-center gap-2 p-2'>
       <img
-        src={appIcon}
+        src='/images/icon-256.png'
         alt='Yomutalk Plus Icon'
         class='size-16 rounded-sm'>
       <div class='flex flex-col items-center'>

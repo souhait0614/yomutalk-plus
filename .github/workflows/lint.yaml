@@ -56,10 +56,12 @@ jobs:
         run: |
           pnpm run typecheck
         env:
+          PUBLIC_BASE_URL: https://example.com
           PUBLIC_VOICEVOX_ENGINE_API_ENABLED: ${{ vars.PUBLIC_VOICEVOX_ENGINE_API_ENABLED }}
 
       - name: Lint
         run: |
           pnpm run lint
         env:
+          PUBLIC_BASE_URL: https://example.com
           PUBLIC_VOICEVOX_ENGINE_API_ENABLED: ${{ vars.PUBLIC_VOICEVOX_ENGINE_API_ENABLED }}

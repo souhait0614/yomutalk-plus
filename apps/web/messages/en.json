@@ -1,5 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app_description": "A web app that feels like that text-to-speech app",
   "app_name": "Yomutalk Plus",
   "app_update_available": "App update available",
   "bookmark_add": "Add bookmark",
