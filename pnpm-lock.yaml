@@ -235,6 +235,9 @@ importers:
       '@fontsource-variable/ibm-plex-sans':
         specifier: 5.3.0
         version: 5.3.0
+      '@fontsource-variable/noto-serif-jp':
+        specifier: 5.3.1
+        version: 5.3.1
       '@repo/api':
         specifier: workspace:*
         version: link:../../packages/api
@@ -1427,6 +1430,9 @@ packages:
 
   '@fontsource-variable/ibm-plex-sans@5.3.0':
     resolution: {integrity: sha512-agG8tXFEo0hD9+J7npa4vbbWult52eMLVaQ6WQRlhs/iCAojrMAoejru85W9HTVXHfyUj96KM7gp/KGAS87XaQ==}
+
+  '@fontsource-variable/noto-serif-jp@5.3.1':
+    resolution: {integrity: sha512-quU5uIezSqZFgPaDDI2C3hQfIJHzyXVYuvMZsDDF++og8yechsAwcmCkLLdofPboUB1xHOWV3xohJyIVBi3b4g==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -5932,6 +5938,8 @@ snapshots:
   '@floating-ui/utils@0.2.12': {}
 
   '@fontsource-variable/ibm-plex-sans@5.3.0': {}
+
+  '@fontsource-variable/noto-serif-jp@5.3.1': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
