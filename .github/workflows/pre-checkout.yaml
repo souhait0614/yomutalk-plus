@@ -5,7 +5,15 @@ name: Pre checkout
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
+        description: Ref to check out (defaults to the triggering ref)
     outputs:
+      ref:
+        value: ${{ jobs.checkout.outputs.ref }}
+        description: Ref that was checked out
       sha:
         value: ${{ jobs.checkout.outputs.sha }}
         description: Commit SHA
@@ -19,6 +27,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     outputs:
+      ref: ${{ steps.prepare.outputs.ref }}
       sha: ${{ steps.checkout.outputs.commit }}
     steps:
       - name: Prepare
@@ -27,8 +36,10 @@ jobs:
           event_name: ${{ github.event_name }}
           pr_number: ${{ github.event.pull_request.number }}
           default_ref: ${{ github.ref }}
+          input_ref: ${{ inputs.ref }}
         run: |
-          if [[ "$event_name" == 'pull_request_target' ]]; then
+          specify_ref="$input_ref"
+          if [[ -z "$specify_ref" && "$event_name" == 'pull_request_target' ]]; then
             if [[ -z "$pr_number" ]]; then
               exit 1
             fi

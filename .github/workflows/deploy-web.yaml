@@ -1,0 +1,93 @@
+name: Deploy Web
+
+on:
+  push:
+    tags:
+      - 'web-v*'
+
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'デプロイする ref (タグまたはブランチ。未指定なら実行した ref)'
+        required: false
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pre-checkout:
+    name: Pre checkout
+    uses: ./.github/workflows/pre-checkout.yaml
+    with:
+      ref: ${{ github.event.inputs.ref || '' }}
+
+  deploy:
+    name: Deploy to Cloudflare
+    needs:
+      - pre-checkout
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    env:
+      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+      PUBLIC_VOICEVOX_ENGINE_API_ENABLED: ${{ vars.PUBLIC_VOICEVOX_ENGINE_API_ENABLED }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ needs.pre-checkout.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Resolve version message
+        id: release
+        env:
+          ref: ${{ needs.pre-checkout.outputs.ref }}
+          sha: ${{ needs.pre-checkout.outputs.sha }}
+        run: |
+          if [[ "$ref" == refs/heads/* ]]; then
+            message="${ref#refs/heads/}@${sha:0:7}"
+          else
+            message="${ref#refs/tags/}"
+          fi
+          echo "message=${message}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate configuration
+        run: |
+          for name in PUBLIC_BASE_URL PUBLIC_VOICEVOX_ENGINE_API_ENABLED; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::${name} is not set"
+              exit 1
+            fi
+          done
+
+      - name: Restore Turborepo cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ needs.pre-checkout.outputs.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Setup tools
+        uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
+
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+
+      - name: Build
+        run: |
+          pnpm run build
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          packageManager: pnpm
+          command: deploy --message ${{ steps.release.outputs.message }} --keep-vars
