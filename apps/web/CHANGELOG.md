@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.1.0...web-v1.1.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* Noto Serif JPを埋め込み ([22233d4](https://github.com/souhait0614/yomutalk-plus/commit/22233d4311c74f7adaa3ffe99a46f0caff12be07))
+
 ## [1.1.0](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.0.0...web-v1.1.0) (2026-10-21)
 
 
