@@ -5,11 +5,11 @@
 ## 主な機能
 
 - テキストファイル（アプリ内蔵/外部ファイル）の読み込み・縦書き電子書籍風表示
-- 文章のタップによる自動選択や手動での選択によって範囲選択された文字の音声による読み上げ・キューイングによる連続読み上げ（読み上げ中の範囲は本文上にハイライト表示）
-- ブックマーク機能による任意の文字の即時読み上げ登録
+- 範囲選択した文字の読み上げ・キューイングによる連続読み上げ（読み上げ中の範囲は本文上にハイライト表示）
+- ブックマークによる任意の文字の即時読み上げ登録
 - 小説の作成・編集（ファイルから読み込んだ小説は編集をロック可能）
-- QRコードや端末の共有メニューによる小説の共有
-- PWAによる端末へのインストールとオフライン環境での利用
+- QRコードや端末の共有メニューによる共有
+- PWAによる端末へのインストールとオフライン利用
 
 ## 対応しているファイル形式
 
@@ -79,60 +79,19 @@ VOICEVOX_ENGINE_API_BEARER_TOKEN=...
 ### 小説の共有
 
 `/share/send`（小説を送る）で選択した小説を 1 ファイルにまとめて圧縮し、Cloudflare R2 へアップロードします。
-アップロード後は次の 2 通りの方法で送り先の端末へ渡せます。
-
-- QR コード: `yomutalk-plus-share:<id>` 形式の文字列を表示します。送り先の端末は `/share/receive`（小説を受け取る）でカメラから読み取ります。
-- 小説ファイル: `yomutalk-plus-novel-<日付>.yomutalk-plus-novel` をダウンロードするか、端末の共有メニュー（Web Share API が使える場合のみ）で共有します。送り先の端末は同じ画面でファイルを選択します。
-
-受け取り側では、追加済みでない小説だけを選んで端末へ保存できます。
-
-- R2 バケット `yomutalk-shared-files` を用意し、`apps/web/wrangler.jsonc` の `r2_buckets` で `SHARED_FILES` としてバインドします。
-- バケットには有効期限 1 日のライフサイクルルールを設定してください（QR コードの有効期限はこのルールに依存します）。
-- バインディングが無い場合、共有 API は 503 を返します。
-- 開発サーバーでも `@sveltejs/adapter-cloudflare` の `platformProxy` が `wrangler.jsonc` を読んでバインディングをエミュレートします（状態は `apps/web/.wrangler` に保存されます）。
-- QR コードの読み取りには `zxing-wasm` を使います。wasm は jsDelivr ではなくアプリと同じ配信元（ハッシュ付きアセット）から読み込むため、CDN に依存しません。受け取りには共有 API への接続が必要なので、wasm は PWA のプレキャッシュには含めていません。
+送り先へは QR コード（`yomutalk-plus-share:<id>`、`/share/receive` でカメラから読み取り）か、`yomutalk-plus-novel-<日付>.yomutalk-plus-novel` ファイル（ダウンロード、または Web Share API が使える場合のみ端末の共有メニュー）で渡します。
+受け取り側は追加済みでない小説だけを選んで端末へ保存できます。
 
 ## ビルドとデプロイ
 
-Cloudflare Workers にデプロイします。ビルドしてから、`apps/web` を作業ディレクトリとして wrangler を実行します。
+Cloudflare Workers にデプロイします。 GitHub Actions で自動的にデプロイされるようになっています。
 
-```sh
-pnpm --filter web build
-cd apps/web
-pnpm exec wrangler deploy
-```
+手元で行う場合は `pnpm --filter web build` でビルドしてから、`apps/web` を作業ディレクトリとして `pnpm exec wrangler deploy` を実行します。
 
 ## リリース
 
-[Release Please](https://github.com/googleapis/release-please) でリリースを自動化しています。`main` へ push すると、Conventional Commits を基にバージョンと `CHANGELOG.md` を更新するリリース PR が作成されます。リリース PR をマージすると `<パッケージ名>-v<バージョン>` タグと GitHub Release が作成されます。
-
-対象は `apps/web` と、`apps/web` が依存する機能パッケージ（`packages/api`、`packages/assets`、`packages/novel-parser`、`packages/tts`）です。パッケージごとに独立したリリース PR が出るため、任意のパッケージだけをリリースできます。
-
-- 設定は [.github/release-please/config.json](.github/release-please/config.json) と [.github/release-please/manifest.json](.github/release-please/manifest.json) です。
-- 初回リリースのバージョンは `1.0.0`（`initial-version`）で、タグは `web-v1.0.0`、`tts-v1.0.0` のようになります。
-- リリース対象になるのは `feat`（マイナー）、`fix`・`perf`・`revert`（パッチ）、および `!` や `BREAKING CHANGE` を伴うコミット（メジャー）です。`chore`・`docs`・`style`・`refactor`・`test`・`build`・`ci` は変更履歴に載らず、これらだけの変更ではリリース PR が作成されません。コミットメッセージは [commitlint.config.ts](commitlint.config.ts) で検証される形式で書いてください。
-- `node-workspace` プラグインにより、依存するパッケージが更新されると、それを参照するパッケージ（`apps/web` など）のリリース PR も作成されます。
-- 変更履歴は各パッケージ配下（`apps/web/CHANGELOG.md` など）に書かれます。
-- リポジトリ直下のみの変更や、`packages/eslint-config`・`packages/tsconfig`（ツール設定）のみの変更ではリリース PR は作成されません。リリースだけを先に起こしたい場合は `git commit --allow-empty -m "fix: ..."` のように空コミットを使います。
-- リリース PR はどれも `.release-please-manifest.json` を書き換えるため、**1つずつマージ**してください。`always-update` を有効にしているため、実行のたびに各 PR のブランチは最新の `main` から作り直されます（本文が変わらない PR も更新されます）。
-- 設定画面に表示されるバージョンは `apps/web/package.json` を参照しているため、リリース PR をマージすると自動で更新されます。
-
-### リリース PR の CI（GitHub App）
-
-リリース PR の CI を自動実行するため、Release Please は `GITHUB_TOKEN` ではなく専用の GitHub App のインストールトークンで PR を作成します。`GITHUB_TOKEN` で作成・更新された PR は、`pull_request` イベントのワークフローが**承認待ち**（`Approve workflows to run` を押すまで実行されない）になり、`pull_request_target` のワークフロー（`Lint`）は実行自体が作成されません。GitHub App や PAT で作成した PR はこの制限を受けず、CI が自動で実行されます。
-
-セットアップ:
-
-1. [GitHub App](https://docs.github.com/apps/creating-github-apps/setting-up-a-github-app/creating-a-github-app) を作成します。Webhook は無効にし、リポジトリの権限は `Contents: Read and write`・`Issues: Read and write`・`Pull requests: Read and write` のみにします。
-2. 作成した App をこのリポジトリ**だけ**にインストールします。
-3. App の Client ID をリポジトリ変数 `RELEASE_PLEASE_APP_CLIENT_ID` に、生成した秘密鍵（`.pem`）をリポジトリシークレット `RELEASE_PLEASE_APP_PRIVATE_KEY` に登録します。CLI では次のとおりです。
-
-   ```sh
-   gh variable set RELEASE_PLEASE_APP_CLIENT_ID --body "<App の Client ID>"
-   gh secret set RELEASE_PLEASE_APP_PRIVATE_KEY < private-key.pem
-   ```
-
-4. 秘密鍵は定期的にローテーションします（[.github/workflows/release-please.yaml](.github/workflows/release-please.yaml) が 1 時間で失効するトークンを都度発行します）。
+[Release Please](https://github.com/googleapis/release-please) でリリースを自動化しています。
+設定は [.github/release-please/config.json](.github/release-please/config.json) と [.github/release-please/manifest.json](.github/release-please/manifest.json) です。
 
 ## ライセンス
 
