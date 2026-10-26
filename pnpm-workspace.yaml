@@ -11,7 +11,7 @@ catalog:
   eslint-plugin-svelte: 3.23.1
   jiti: 2.7.0
   typescript: 6.0.3
-  vite: 8.3.4
+  vite: 8.3.5
 allowBuilds:
   esbuild: true
   lefthook: true
