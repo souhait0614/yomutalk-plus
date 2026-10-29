@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Dialog as DialogPrimitive } from "bits-ui";
-	import { IconX } from '@tabler/icons-svelte';
+	import IconX from '@tabler/icons-svelte/icons/x';
 	import { Button } from "$lib/shadcn-svelte/components/ui/button/index.js";
 	import { cn, type WithoutChildrenOrChild } from "$lib/shadcn-svelte/utils.js";
-	import * as Dialog from "./index.js";
+	import DialogOverlay from "./dialog-overlay.svelte";
 	import DialogPortal from "./dialog-portal.svelte";
 	import type { Snippet } from "svelte";
 	import type { ComponentProps } from "svelte";
@@ -23,7 +23,7 @@
 </script>
 
 <DialogPortal {...portalProps}>
-	<Dialog.Overlay />
+	<DialogOverlay />
 	<DialogPrimitive.Content
 		bind:ref
 		data-slot="dialog-content"

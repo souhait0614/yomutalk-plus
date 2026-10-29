@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { Dialog as SheetPrimitive } from "bits-ui";
-	import { IconX } from '@tabler/icons-svelte';
+	import IconX from '@tabler/icons-svelte/icons/x';
 	import { Button } from "$lib/shadcn-svelte/components/ui/button/index.js";
 	import { cn, type WithoutChildrenOrChild } from "$lib/shadcn-svelte/utils.js";
 	import SheetOverlay from "./sheet-overlay.svelte";
