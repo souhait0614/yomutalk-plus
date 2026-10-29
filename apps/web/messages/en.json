@@ -270,12 +270,14 @@
   "tts_manual_input_description": "The entered text will be added to the speech list",
   "tts_no_texts": "No texts to read aloud.",
   "tts_play": "Play",
+  "tts_reading": "Reading (optional)",
   "tts_register": "Add",
   "tts_settings": "Settings",
   "tts_state_failed": "Preparation failed",
   "tts_state_preparing": "Preparing",
   "tts_state_ready": "Ready",
   "tts_stop": "Stop",
+  "tts_text": "Text to read",
   "tts_voice": "Speech voice",
   "viewer_novel_content": "Novel content"
 }

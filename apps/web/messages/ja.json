@@ -270,12 +270,14 @@
   "tts_manual_input_description": "入力した文字を読み上げに登録します",
   "tts_no_texts": "読み上げる文章はありません。",
   "tts_play": "再生",
+  "tts_reading": "読み方 (省略可)",
   "tts_register": "登録",
   "tts_settings": "設定",
   "tts_state_failed": "準備に失敗しました",
   "tts_state_preparing": "準備中",
   "tts_state_ready": "準備完了",
   "tts_stop": "停止",
+  "tts_text": "読み上げる文字",
   "tts_voice": "読み上げ音声",
   "viewer_novel_content": "小説本文"
 }

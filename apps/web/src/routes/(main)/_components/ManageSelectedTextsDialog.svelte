@@ -35,7 +35,7 @@
     readonly selectedTextMap: SelectedTextMap;
 
     readonly onClickPlayButton: () => void;
-    readonly onClickAddSelectedTextButton: (text: string) => void;
+    readonly onClickAddSelectedTextButton: (text: string, reading: string | undefined) => void;
     readonly onClickAddBookmarkButton: (selectedTextId: string) => void;
     readonly onClickDeleteButton: (selectedTextId: string) => void;
     readonly onClickDeleteAllButton: () => void;
@@ -56,6 +56,7 @@
 
   let openAddSelectedTextDialog = $state(false);
   let addSelectedTextInput = $state('');
+  let addSelectedTextReadingInput = $state('');
 
   const defaultTtsPreset = ttsPresetEntries.find(({ key }) => key === defaultTtsPresetKey);
   const getTtsPreset = () => ttsPreset.current ?? '';
@@ -71,8 +72,10 @@
 
   const handleAddSelectedTextFormSubmit = (event: SubmitEvent) => {
     event.preventDefault();
-    if (!addSelectedTextInput.trim()) return;
-    onClickAddSelectedTextButton(addSelectedTextInput);
+    const text = addSelectedTextInput.trim();
+    if (!text) return;
+    const reading = addSelectedTextReadingInput.trim();
+    onClickAddSelectedTextButton(text, reading || undefined);
     openAddSelectedTextDialog = false;
   };
 </script>
@@ -160,7 +163,10 @@
         <div class='flex items-center gap-2'>
           <Dialog.Root
             bind:open={openAddSelectedTextDialog}
-            onOpenChangeComplete={() => (addSelectedTextInput = '')}>
+            onOpenChangeComplete={() => {
+              addSelectedTextInput = '';
+              addSelectedTextReadingInput = '';
+            }}>
             <Dialog.Trigger class={buttonVariants({ variant: 'outline' })}>
               <IconKeyboard/> {m.tts_manual_input()}
             </Dialog.Trigger>
@@ -172,7 +178,24 @@
                 </Dialog.Description>
               </Dialog.Header>
               <form class='contents' onsubmit={handleAddSelectedTextFormSubmit}>
-                <Input bind:value={addSelectedTextInput}/>
+                <Field.Group class='gap-4'>
+                  <Field.Field>
+                    <Field.Label for='addSelectedTextInput'>{m.tts_text()}</Field.Label>
+                    <Input
+                      id='addSelectedTextInput'
+                      bind:value={addSelectedTextInput}
+                      autocomplete='off'/>
+                  </Field.Field>
+                  <Field.Field>
+                    <Field.Label for='addSelectedTextReadingInput'>
+                      {m.tts_reading()}
+                    </Field.Label>
+                    <Input
+                      id='addSelectedTextReadingInput'
+                      bind:value={addSelectedTextReadingInput}
+                      autocomplete='off'/>
+                  </Field.Field>
+                </Field.Group>
                 <Dialog.Footer>
                   <Dialog.Close class={buttonVariants({ variant: 'outline' })}>
                     {m.common_cancel()}

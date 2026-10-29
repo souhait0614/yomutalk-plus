@@ -420,9 +420,11 @@
     requestAutoPlayback();
   };
 
-  const handleClickAddSelectedTextButton = (text: string) => {
+  const handleClickAddSelectedTextButton = (text: string, reading?: string) => {
     const id = crypto.randomUUID();
-    const inlines: NovelInline[] = [{ type: 'text', value: text }];
+    const inlines: NovelInline[] = reading
+      ? [{ type: 'ruby', base: text, reading }]
+      : [{ type: 'text', value: text }];
     const manuallyEnteredText: ManuallyEnteredText = {
       documentId: null,
       inlines,
