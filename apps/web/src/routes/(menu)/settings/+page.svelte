@@ -36,7 +36,16 @@
     if (locale === 'ja' || locale === 'en') void setLocale(locale);
   };
 
+  let backupDialogOpen = $state(false);
+  let isExporting = $state(false);
+
+  const openBackupDialog = () => {
+    backupDialogOpen = true;
+  };
+
   const exportDexieDatabase = async () => {
+    if (isExporting) return;
+    isExporting = true;
     try {
       const dexieExportImport = await import('dexie-export-import');
       const blob = await dexieExportImport.exportDB(appDatabase);
@@ -44,9 +53,12 @@
         blob.stream().pipeThrough(new CompressionStream('gzip')),
       ).blob();
       downloadBlob(compressedBlob, `yomutalk-plus-data-backup-${getCurrentDateString()}.${dexieExportDataFileExtension}`);
+      backupDialogOpen = false;
     } catch (error) {
       toast.error(m.settings_backup_failed());
       console.error('Failed to export the database:', error);
+    } finally {
+      isExporting = false;
     }
   };
 
@@ -165,7 +177,7 @@
     </Field.Field>
   </Field.Group>
   <Separator/>
-  <NavigationItem onclick={exportDexieDatabase}>
+  <NavigationItem onclick={openBackupDialog}>
     {#snippet startIcon()}
       <IconDatabaseExport/>
     {/snippet}
@@ -201,6 +213,24 @@
     {m.nav_about()}
   </NavigationItem>
 </div>
+
+<AlertDialog.Root bind:open={backupDialogOpen}>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>{m.settings_backup_confirm_title()}</AlertDialog.Title>
+      <AlertDialog.Description>
+        <span class='block'>{m.settings_backup_confirm_description({ ext: dexieExportDataFileExtension })}</span>
+        <span class='block'>{m.settings_backup_restore_guide()}</span>
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel disabled={isExporting}>{m.common_cancel()}</AlertDialog.Cancel>
+      <AlertDialog.Action disabled={isExporting} onclick={exportDexieDatabase}>
+        {m.settings_backup_submit()}
+      </AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>
 
 <AlertDialog.Root bind:open={importDialogOpen}>
   <AlertDialog.Content>
