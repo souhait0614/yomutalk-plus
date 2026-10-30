@@ -110,16 +110,7 @@ const createTwTransition = (defaults: TwAnimateParams): TwTransition => (node, p
 
 export const twFade = createTwTransition({ opacity: 0 });
 
-export const twZoom = createTwTransition({ scale: 0 });
-
-export const twSpin = createTwTransition({ rotate: 30 });
-
-export const twBlur = createTwTransition({ blur: 20 });
-
 export const twSlideToTop = createTwTransition({ y: '-100%' });
 
 export const twSlideToBottom = createTwTransition({ y: '100%' });
 
-export const twSlideToLeft = createTwTransition({ x: '-100%' });
-
-export const twSlideToRight = createTwTransition({ x: '100%' });

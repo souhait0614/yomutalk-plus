@@ -103,12 +103,6 @@ export const createSharedNovelsFileName = (): string => (
   `${novelShareFileExtension}-${getCurrentDateString()}.${novelShareFileExtension}`
 );
 
-export const formatByteSize = (byteLength: number): string => {
-  if (byteLength < 1024) return `${byteLength} B`;
-  if (byteLength < 1024 * 1024) return `${(byteLength / 1024).toFixed(1)} KB`;
-  return `${(byteLength / (1024 * 1024)).toFixed(1)} MB`;
-};
-
 const readApiErrorMessage = async (response: Response, fallbackMessage: string): Promise<string> => {
   try {
     const body = await response.json() as { message?: unknown; };

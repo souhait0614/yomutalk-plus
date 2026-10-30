@@ -1,10 +1,5 @@
 import type { NovelInline } from '@repo/novel-parser';
 
-export const dialogueQuotes = {
-  open: '「',
-  close: '」',
-} as const;
-
 export function contentToText(inlines: NovelInline[], useRubyReading = false) {
   return inlines
     .map((inline) => {

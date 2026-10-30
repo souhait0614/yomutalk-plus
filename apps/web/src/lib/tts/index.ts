@@ -2,12 +2,10 @@ import type { TtsModule, TtsPreset } from '@repo/tts';
 import { speechSynthesisModule, voicevoxModule } from '@repo/tts';
 import { PUBLIC_VOICEVOX_ENGINE_API_ENABLED } from '$env/static/public';
 
-export const ttsModuleList: ReadonlyArray<TtsModule> = Array.from((function*(): Iterable<TtsModule> {
-  yield speechSynthesisModule;
-  if (PUBLIC_VOICEVOX_ENGINE_API_ENABLED === 'true') {
-    yield voicevoxModule;
-  }
-})()).sort((a, b) => a.name.localeCompare(b.name));
+export const ttsModuleList: ReadonlyArray<TtsModule> = [
+  speechSynthesisModule,
+  ...(PUBLIC_VOICEVOX_ENGINE_API_ENABLED === 'true' ? [voicevoxModule] : []),
+].sort((a, b) => a.name.localeCompare(b.name));
 
 export interface TtsPresetEntry {
   readonly preset: TtsPreset;
