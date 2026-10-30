@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/souhait0614/yomutalk-plus/compare/novel-parser-v1.0.1...novel-parser-v1.0.2) (2026-10-30)
+
+
+### Performance Improvements
+
+* **novel-parser:** 青空文庫パーサの文字単位処理を最適化 ([8ff3751](https://github.com/souhait0614/yomutalk-plus/commit/8ff3751923f1a4e19b7e8637fb053bddf4882726))
+
 ## [1.0.1](https://github.com/souhait0614/yomutalk-plus/compare/novel-parser-v1.0.0...novel-parser-v1.0.1) (2026-10-21)
 
 
