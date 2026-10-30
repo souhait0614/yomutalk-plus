@@ -13,7 +13,7 @@
     "lint:fix": "eslint --cache --fix ."
   },
   "dependencies": {
-    "hono": "4.13.13",
+    "hono": "4.13.14",
     "valibot": "1.5.0"
   },
   "devDependencies": {
