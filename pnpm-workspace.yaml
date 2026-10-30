@@ -6,7 +6,7 @@ overrides:
   eslint-plugin-unused-imports: 4.4.1
 catalog:
   '@types/node': 24.19.2
-  eslint: 9.39.5
+  eslint: 10.13.0
   eslint-plugin-better-tailwindcss: 4.10.0
   eslint-plugin-svelte: 3.23.1
   jiti: 2.7.0
