@@ -9,6 +9,12 @@ const AOZORA_INDENT_SINGLE = /［＃([０-９0-9]+)字下げ］/u;
 const AOZORA_INDENT_END = /［＃ここで字下げ終わり］/u;
 const AOZORA_END_ALIGNMENT = /［＃地付き］/u;
 
+// NOTE: 外字の読みを推定する際に1文字ごとに判定するため、正規表現は生成し直さず使い回す
+const HAN_CHARACTER = /^[\p{Script=Han}々〆〇ヶ仝]$/u;
+const HIRAGANA_CHARACTER = /^\p{Script=Hiragana}$/u;
+const KATAKANA_CHARACTER = /^[\p{Script=Katakana}ー]$/u;
+const LATIN_CHARACTER = /^\p{Script=Latin}$/u;
+
 export interface AozoraTextSource {
   title: string;
   author: string | null;
@@ -67,7 +73,8 @@ export function parseAozoraText(
   let indent: number | undefined;
   const blocks: NovelBlock[] = [];
 
-  for (const [lineIndex, line] of lines.slice(0, bodyEnd).entries()) {
+  for (const [lineIndex, line] of lines.entries()) {
+    if (lineIndex >= bodyEnd) break;
     if (line.trim() === '') {
       // NOTE: 本文先頭の空行はファイル整形によるものとして扱う
       if (blocks.length > 0) {
@@ -134,6 +141,7 @@ function getAozoraLineFormat(
   const start = line.match(AOZORA_INDENT_START);
   const single = line.match(AOZORA_INDENT_SINGLE);
   const endsIndent = AOZORA_INDENT_END.test(line);
+  const align = AOZORA_END_ALIGNMENT.test(line) ? 'end' : undefined;
   const indent = start === null
     ? single === null
       ? activeIndent
@@ -154,7 +162,7 @@ function getAozoraLineFormat(
     content,
     indent,
     nextIndent,
-    align: AOZORA_END_ALIGNMENT.test(line) ? 'end' : undefined,
+    align,
   };
 }
 
@@ -233,56 +241,57 @@ function parseAozoraInline(source: string): NovelInline[] {
   return inlines;
 }
 
+const getPreviousCharacterStart = (value: string, end: number): number => {
+  const codeUnit = value.charCodeAt(end - 1);
+  return codeUnit >= 0xDC00 && codeUnit <= 0xDFFF && end >= 2 ? end - 2 : end - 1;
+};
+
 function takeImplicitRubyBase(inlines: NovelInline[]): string | null {
   const lastInline = inlines.at(-1);
 
-  if (lastInline?.type !== 'text') {
+  if (lastInline?.type !== 'text' || lastInline.value === '') {
     return null;
   }
 
-  const characters = Array.from(lastInline.value);
-  const lastCharacter = characters.at(-1);
-  const script = lastCharacter === undefined ? null : getCharacterScript(lastCharacter);
+  const { value } = lastInline;
+  let baseStart = getPreviousCharacterStart(value, value.length);
+  const script = getCharacterScript(value.slice(baseStart));
 
   if (script === null) {
     return null;
   }
 
-  let baseStart = characters.length - 1;
-
-  while (
-    baseStart > 0
-    && getCharacterScript(characters[baseStart - 1] ?? '') === script
-  ) {
-    baseStart -= 1;
+  while (baseStart > 0) {
+    const previousStart = getPreviousCharacterStart(value, baseStart);
+    if (getCharacterScript(value.slice(previousStart, baseStart)) !== script) break;
+    baseStart = previousStart;
   }
 
-  const base = characters.slice(baseStart).join('');
-  const remainingText = characters.slice(0, baseStart).join('');
+  const base = value.slice(baseStart);
 
-  if (remainingText === '') {
+  if (baseStart === 0) {
     inlines.pop();
   } else {
-    lastInline.value = remainingText;
+    lastInline.value = value.slice(0, baseStart);
   }
 
   return base;
 }
 
 function getCharacterScript(character: string): string | null {
-  if ((/^[\p{Script=Han}々〆〇ヶ仝]$/u).test(character)) {
+  if (HAN_CHARACTER.test(character)) {
     return 'han';
   }
 
-  if ((/^\p{Script=Hiragana}$/u).test(character)) {
+  if (HIRAGANA_CHARACTER.test(character)) {
     return 'hiragana';
   }
 
-  if ((/^[\p{Script=Katakana}ー]$/u).test(character)) {
+  if (KATAKANA_CHARACTER.test(character)) {
     return 'katakana';
   }
 
-  if ((/^\p{Script=Latin}$/u).test(character)) {
+  if (LATIN_CHARACTER.test(character)) {
     return 'latin';
   }
 
