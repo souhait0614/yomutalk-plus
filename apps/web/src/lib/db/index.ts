@@ -248,16 +248,18 @@ const resetDatabase = async (): Promise<void> => {
 
 appDatabase.on('populate', (transaction) => {
   const table = transaction.table<LoadedNovelDocument, string>('loadedNovelDocuments');
-  const additions = bundledNovelDocuments.map(({ document, source, hash, writingMode }, sortOrder) => {
+  const additions = bundledNovelDocuments.map(async ({ title, fileType, source, writingMode }, sortOrder) => {
     const bytes = new TextEncoder().encode(source);
+    // NOTE: 初回起動時だけ必要になるため、モジュール読み込み時ではなくここでハッシュを計算する
+    const hash = await Dexie.waitFor(computeContentHash(bytes.buffer));
     return table.add({
       id: uuidv7(),
       type: 'file',
-      fileType: document.format === 'aozora-text' ? 'aozoratext' : 'plaintext',
-      fileData: new File([bytes], `${document.title}.txt`, { type: 'text/plain;charset=utf-8' }),
+      fileType,
+      fileData: new File([bytes], `${title}.txt`, { type: 'text/plain;charset=utf-8' }),
       writingMode,
       hash,
-      title: document.title,
+      title,
       sortOrder,
     });
   });
