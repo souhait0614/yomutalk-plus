@@ -283,5 +283,8 @@
   "tts_stop": "停止",
   "tts_text": "読み上げる文字",
   "tts_voice": "読み上げ音声",
+  "tts_voice_description": "読み上げに使用する音声を選択します",
+  "tts_voice_no_results": "一致する音声がありません。",
+  "tts_voice_search": "音声を検索",
   "viewer_novel_content": "小説本文"
 }

@@ -283,5 +283,8 @@
   "tts_stop": "Stop",
   "tts_text": "Text to read",
   "tts_voice": "Speech voice",
+  "tts_voice_description": "Select the voice used for reading aloud",
+  "tts_voice_no_results": "No matching voices.",
+  "tts_voice_search": "Search voices",
   "viewer_novel_content": "Novel content"
 }

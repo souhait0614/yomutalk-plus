@@ -1,5 +1,6 @@
 <script lang='ts'>
   import {
+    IconChevronDown,
     IconKeyboard,
     IconPlayerPlay,
     IconPlayerStop,
@@ -15,15 +16,11 @@
     Button,
     buttonVariants,
   } from '$lib/shadcn-svelte/components/ui/button';
+  import * as Command from '$lib/shadcn-svelte/components/ui/command';
   import * as Dialog from '$lib/shadcn-svelte/components/ui/dialog';
   import * as Field from '$lib/shadcn-svelte/components/ui/field';
   import { Input } from '$lib/shadcn-svelte/components/ui/input';
   import * as Item from '$lib/shadcn-svelte/components/ui/item';
-  import {
-    NativeSelect,
-    NativeSelectOptGroup,
-    NativeSelectOption,
-  } from '$lib/shadcn-svelte/components/ui/native-select';
   import { Switch } from '$lib/shadcn-svelte/components/ui/switch';
   import { ttsPresetEntries, ttsPresetGroups } from '$lib/tts';
 
@@ -57,18 +54,28 @@
   let openAddSelectedTextDialog = $state(false);
   let addSelectedTextInput = $state('');
   let addSelectedTextReadingInput = $state('');
+  let openTtsPresetCommandDialog = $state(false);
+  let ttsPresetCommandValue = $state('');
+
+  const defaultTtsPresetItemValue = 'tts-preset:default';
 
   const defaultTtsPreset = ttsPresetEntries.find(({ key }) => key === defaultTtsPresetKey);
-  const getTtsPreset = () => ttsPreset.current ?? '';
-  const setTtsPreset = (preset: string | undefined) => {
-    if (!preset) {
-      ttsPreset.current = null;
-    } else {
-      ttsPreset.current = preset;
-    }
-  };
 
   const defaultTtsPresetLabel = $derived(m.tts_default_preset({ preset: defaultTtsPreset?.preset.name ?? '' }));
+
+  const selectedTtsPresetLabel = $derived(
+    ttsPresetEntries.find(({ key }) => key === ttsPreset.current)?.preset.name ?? defaultTtsPresetLabel,
+  );
+
+  const openTtsPresetCommand = () => {
+    ttsPresetCommandValue = ttsPreset.current ?? defaultTtsPresetItemValue;
+    openTtsPresetCommandDialog = true;
+  };
+
+  const selectTtsPreset = (presetKey: string | null) => {
+    ttsPreset.current = presetKey;
+    openTtsPresetCommandDialog = false;
+  };
 
   const handleAddSelectedTextFormSubmit = (event: SubmitEvent) => {
     event.preventDefault();
@@ -230,24 +237,18 @@
         <Field.Group>
           <Field.Field orientation='responsive'>
             <Field.Label for='ttsPreset'>{m.tts_voice()}</Field.Label>
-            <NativeSelect
+            <Button
               id='ttsPreset'
+              variant='outline'
               size='sm'
-              bind:value={getTtsPreset, setTtsPreset}
-              aria-label={m.tts_voice()}>
-              <NativeSelectOptGroup label={m.tts_default()}>
-                <NativeSelectOption value=''>{defaultTtsPresetLabel}</NativeSelectOption>
-              </NativeSelectOptGroup>
-              {#each ttsPresetGroups as group (group.module.id)}
-                <NativeSelectOptGroup label={group.module.name}>
-                  {#each group.entries as entry (entry.key)}
-                    <NativeSelectOption value={entry.key}>
-                      {entry.preset.name}
-                    </NativeSelectOption>
-                  {/each}
-                </NativeSelectOptGroup>
-              {/each}
-            </NativeSelect>
+              class='max-w-full min-w-0'
+              aria-label={`${m.tts_voice()}: ${selectedTtsPresetLabel}`}
+              aria-haspopup='dialog'
+              aria-expanded={openTtsPresetCommandDialog}
+              onclick={openTtsPresetCommand}>
+              <span class='min-w-0 truncate'>{selectedTtsPresetLabel}</span>
+              <IconChevronDown class='text-muted-foreground'/>
+            </Button>
           </Field.Field>
           <Field.Field orientation='horizontal'>
             <Field.Content>
@@ -263,3 +264,36 @@
     </Field.Group>
   </Dialog.Content>
 </Dialog.Root>
+
+<Command.Dialog
+  bind:open={openTtsPresetCommandDialog}
+  bind:value={ttsPresetCommandValue}
+  title={m.tts_voice()}
+  description={m.tts_voice_description()}>
+  <Command.Input placeholder={m.tts_voice_search()}/>
+  <Command.List aria-label={m.tts_voice()} class='scroll-fade'>
+    <Command.Empty>{m.tts_voice_no_results()}</Command.Empty>
+    <Command.Group heading={m.tts_default()}>
+      <Command.Item
+        value={defaultTtsPresetItemValue}
+        keywords={[defaultTtsPreset?.preset.name ?? '']}
+        data-checked={ttsPreset.current === null}
+        onSelect={() => selectTtsPreset(null)}>
+        {defaultTtsPreset?.preset.name ?? ''}
+      </Command.Item>
+    </Command.Group>
+    {#each ttsPresetGroups as group (group.module.id)}
+      <Command.Group heading={group.module.name}>
+        {#each group.entries as entry (entry.key)}
+          <Command.Item
+            value={entry.key}
+            keywords={[entry.preset.name, group.module.name]}
+            data-checked={ttsPreset.current === entry.key}
+            onSelect={() => selectTtsPreset(entry.key)}>
+            {entry.preset.name}
+          </Command.Item>
+        {/each}
+      </Command.Group>
+    {/each}
+  </Command.List>
+</Command.Dialog>

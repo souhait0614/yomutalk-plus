@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@inlang/paraglide-js": "2.29.1",
+    "@internationalized/date": "^3.12.4",
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
     "@sveltejs/adapter-cloudflare": "7.2.9",
