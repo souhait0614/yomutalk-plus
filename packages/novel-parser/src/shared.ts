@@ -182,9 +182,3 @@ export function classifySentenceTextType(inlines: NovelInline[]): NovelTextType 
 export function normalizeSource(source: string): string {
   return source.replace(/^\uFEFF/u, '').replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 }
-
-export function getContentLines(source: string): string[] {
-  return normalizeSource(source)
-    .split('\n')
-    .filter((line) => line.trim() !== '');
-}
