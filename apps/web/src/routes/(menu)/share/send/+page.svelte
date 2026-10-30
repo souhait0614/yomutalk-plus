@@ -5,14 +5,12 @@
   import Button from '$lib/shadcn-svelte/components/ui/button/button.svelte';
   import { Checkbox } from '$lib/shadcn-svelte/components/ui/checkbox';
   import * as Field from '$lib/shadcn-svelte/components/ui/field';
-  import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
-  import { encodeSharedNovels, uploadSharedNovels } from '$lib/sharedNovels';
-  import { getErrorMessage } from '$lib/utils/misc';
   import { stateQuery } from 'dexie-svelte-query';
-  import { toast } from 'svelte-sonner';
   import { SvelteMap } from 'svelte/reactivity';
 
-  import ShareNovelsDialog from './_components/ShareNovelsDialog.svelte';
+  import SelectShareMethodDialog from './_components/SelectShareMethodDialog.svelte';
+  import ShareNovelFileDialog from './_components/ShareNovelFileDialog.svelte';
+  import ShareNovelQrDialog from './_components/ShareNovelQrDialog.svelte';
 
   const loadedNovelDocumentsQuery = stateQuery(getLoadedNovelDocuments);
   const filteredLoadedNovelDocuments = $derived(
@@ -23,30 +21,27 @@
 
   const selectedIds = new SvelteMap<string, boolean>();
   const selectedCount = $derived([...selectedIds.values()].filter((selected) => selected).length);
+  const selectedDocuments = $derived(
+    filteredLoadedNovelDocuments.filter(({ id }) => selectedIds.get(id) === true),
+  );
+  const selectedShareKey = $derived(selectedDocuments.map(({ id }) => id).sort().join());
 
-  let isPreparing = $state(false);
-  let shareDialogOpen = $state(false);
-  let sharedNovelsId = $state('');
-  let sharedNovelsBlob = $state.raw<Blob>();
+  // 一度アップロードした組み合わせは、同じ共有 ID で QR コードを表示できる
+  const uploadedSharedNovelsIds = new SvelteMap<string, string>();
 
-  const handleClickShareButton = async () => {
-    if (isPreparing) return;
-    const documents = filteredLoadedNovelDocuments.filter(({ id }) => selectedIds.get(id) === true);
-    if (documents.length === 0) return;
+  let selectMethodDialogOpen = $state(false);
+  let qrDialogOpen = $state(false);
+  let fileDialogOpen = $state(false);
 
-    isPreparing = true;
-    try {
-      // サーバーに預ける分と渡す分は同じ中身なので、一度だけ符号化する
-      const blob = await encodeSharedNovels(documents);
-      sharedNovelsId = await uploadSharedNovels(blob);
-      sharedNovelsBlob = blob;
-      shareDialogOpen = true;
-    } catch (error) {
-      toast.error(getErrorMessage(error, m.share_prepare_failed()));
-      console.error('Failed to prepare shared novels:', error);
-    } finally {
-      isPreparing = false;
-    }
+  const handleClickShareButton = () => {
+    if (selectedDocuments.length === 0) return;
+    selectMethodDialogOpen = true;
+  };
+
+  const handleSelectShareMethod = (method: 'qr' | 'file') => {
+    selectMethodDialogOpen = false;
+    qrDialogOpen = method === 'qr';
+    fileDialogOpen = method === 'file';
   };
 </script>
 
@@ -75,16 +70,21 @@
   </Field.Set>
   <div class='sticky bottom-4 flex flex-col gap-2'>
     <Button
-      disabled={selectedCount === 0 || isPreparing}
+      disabled={selectedCount === 0}
       size='lg'
-      onclick={() => void handleClickShareButton()}>
-      {#if isPreparing}
-        <Spinner/> {m.share_preparing()}
-      {:else}
-        <IconShare/> {m.share_send_action()}
-      {/if}
+      onclick={handleClickShareButton}>
+      <IconShare/> {m.share_send_action()}
     </Button>
   </div>
 </div>
 
-<ShareNovelsDialog bind:open={shareDialogOpen} id={sharedNovelsId} blob={sharedNovelsBlob}/>
+<SelectShareMethodDialog
+  bind:open={selectMethodDialogOpen}
+  onSelectMethod={handleSelectShareMethod}/>
+<ShareNovelQrDialog
+  bind:open={qrDialogOpen}
+  documents={selectedDocuments}
+  uploadedSharedNovelsId={uploadedSharedNovelsIds.get(selectedShareKey)}
+  onUploadSharedNovels={(id) => uploadedSharedNovelsIds.set(selectedShareKey, id)}
+  onSelectFile={() => handleSelectShareMethod('file')}/>
+<ShareNovelFileDialog bind:open={fileDialogOpen} documents={selectedDocuments}/>

@@ -78,8 +78,10 @@ VOICEVOX_ENGINE_API_BEARER_TOKEN=...
 
 ### 小説の共有
 
-`/share/send`（小説を送る）で選択した小説を 1 ファイルにまとめて圧縮し、Cloudflare R2 へアップロードします。
-送り先へは QR コード（`yomutalk-plus-share:<id>`、`/share/receive` でカメラから読み取り）か、`yomutalk-plus-novel-<日付>.yomutalk-plus-novel` ファイル（ダウンロード、または Web Share API が使える場合のみ端末の共有メニュー）で渡します。
+`/share/send`（小説を送る）で小説を選択し、「送る」を押すと送り方を選ぶダイアログが開きます。
+QR コードで送る場合は、選択した小説を 1 ファイルにまとめて圧縮し、Cloudflare R2 へアップロードします（共有は作成から 1 日で無効）。
+送り先では QR コード（`yomutalk-plus-share:<id>`、`/share/receive` でカメラから読み取り）を読み取ります。
+小説ファイルで送る場合は端末内で `yomutalk-plus-novel-<日付>.yomutalk-plus-novel` ファイルを作成し、ダウンロード（または Web Share API が使える場合のみ端末の共有メニュー）で渡します。こちらはアップロードを行いません。
 受け取り側は追加済みでない小説だけを選んで端末へ保存できます。
 
 ## ビルドとデプロイ
