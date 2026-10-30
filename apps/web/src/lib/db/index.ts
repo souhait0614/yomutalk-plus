@@ -3,7 +3,7 @@ import { parseAozoraText } from '@repo/novel-parser';
 import { m } from '$lib/paraglide/messages';
 import { copyRegisteredText } from '$lib/selectedText';
 import { computeContentHash } from '$lib/utils/hash';
-import { decodeTextFile } from '$lib/utils/textEncoding';
+import { decodeTextContent } from '$lib/utils/textEncoding';
 import { Dexie } from 'dexie';
 import { v7 as uuidv7 } from 'uuid';
 
@@ -27,10 +27,7 @@ export class AppDatabase extends Dexie {
 
 const appDatabase = new AppDatabase();
 
-const getBookmarks = async (): Promise<Bookmark[]> => {
-  const bookmarks = await appDatabase.bookmarks.orderBy('id').toArray();
-  return bookmarks;
-};
+const getBookmarks = (): Promise<Bookmark[]> => appDatabase.bookmarks.orderBy('id').toArray();
 
 const addBookmark = (registeredText: RegisteredText, folderId: string | null = null): Promise<string> => {
   return appDatabase.transaction('rw', appDatabase.bookmarks, appDatabase.bookmarkFolders, async () => {
@@ -55,10 +52,9 @@ const deleteBookmarksByDocumentId = async (documentId: string): Promise<void> =>
   await appDatabase.bookmarks.where('documentId').equals(documentId).delete();
 };
 
-const getBookmarkFolders = async (): Promise<BookmarkFolder[]> => {
-  const folders = await appDatabase.bookmarkFolders.orderBy('sortOrder').toArray();
-  return folders;
-};
+const getBookmarkFolders = (): Promise<BookmarkFolder[]> => (
+  appDatabase.bookmarkFolders.orderBy('sortOrder').toArray()
+);
 
 const addBookmarkFolder = async (name: string): Promise<string> => {
   const normalizedName = name.trim();
@@ -66,7 +62,7 @@ const addBookmarkFolder = async (name: string): Promise<string> => {
 
   return appDatabase.transaction('rw', appDatabase.bookmarkFolders, async () => {
     const folders = await appDatabase.bookmarkFolders.toArray();
-    const lastSortOrder = Math.max(-1, ...folders.map(({ sortOrder }) => sortOrder));
+    const lastSortOrder = folders.reduce((max, { sortOrder }) => Math.max(max, sortOrder), -1);
     return appDatabase.bookmarkFolders.add({
       id: uuidv7(),
       name: normalizedName,
@@ -91,28 +87,27 @@ const setBookmarkFolder = async (bookmarkId: string, folderId: string | null): P
   });
 };
 
-const getLoadedNovelDocuments = async (): Promise<LoadedNovelDocument[]> => {
-  const documents = await appDatabase.loadedNovelDocuments.orderBy('sortOrder').toArray();
-  return documents;
-};
+const getLoadedNovelDocuments = (): Promise<LoadedNovelDocument[]> => (
+  appDatabase.loadedNovelDocuments.orderBy('sortOrder').toArray()
+);
 
-const getNextSortOrder = async (): Promise<number> => {
-  const documents = await appDatabase.loadedNovelDocuments.orderBy('sortOrder').toArray();
-  return Math.max(-1, documents.at(-1)?.sortOrder ?? -1) + 1;
-};
+// NOTE: Dexie の last() は逆順カーソルで末尾1件だけを読むため、全件を取得しない
+const getNextSortOrder = async (): Promise<number> => (
+  ((await appDatabase.loadedNovelDocuments.orderBy('sortOrder').last())?.sortOrder ?? -1) + 1
+);
 
-const getLoadedNovelDocumentFileTitle = async (
+const getLoadedNovelDocumentFileTitle = (
   fileType: LoadedNovelDocumentFileType,
-  fileData: File,
-): Promise<string> => {
+  fileName: string,
+  content: ArrayBuffer,
+): string => {
   switch (fileType) {
     case 'plaintext': {
-      return fileData.name;
+      return fileName;
     }
     case 'aozoratext': {
-      const textContent = await decodeTextFile(fileData);
-      const novelDocument = parseAozoraText(textContent);
-      return novelDocument.title || fileData.name;
+      const novelDocument = parseAozoraText(decodeTextContent(content));
+      return novelDocument.title || fileName;
     }
     default: {
       throw new Error(`Unsupported file type: ${fileType}`);
@@ -126,8 +121,10 @@ const addLoadedNovelDocumentFromFile = async (
   writingMode: NovelWritingMode,
   isEditLocked = false,
 ): Promise<string> => {
-  const title = await getLoadedNovelDocumentFileTitle(fileType, fileData);
-  const hash = await computeContentHash(await fileData.arrayBuffer());
+  // NOTE: タイトル判定とハッシュ計算で同じバイト列を使い回し、ファイルを二度読まない
+  const content = await fileData.arrayBuffer();
+  const title = getLoadedNovelDocumentFileTitle(fileType, fileData.name, content);
+  const hash = await computeContentHash(content);
 
   return appDatabase.transaction('rw', appDatabase.loadedNovelDocuments, async () => (
     appDatabase.loadedNovelDocuments.add({
@@ -151,8 +148,9 @@ const updateLoadedNovelDocumentFromFile = async (
   writingMode: NovelWritingMode,
   expectedHash?: string,
 ): Promise<void> => {
-  const title = await getLoadedNovelDocumentFileTitle(fileType, fileData);
-  const hash = await computeContentHash(await fileData.arrayBuffer());
+  const content = await fileData.arrayBuffer();
+  const title = getLoadedNovelDocumentFileTitle(fileType, fileData.name, content);
+  const hash = await computeContentHash(content);
 
   await appDatabase.transaction('rw', appDatabase.loadedNovelDocuments, async () => {
     const document = await appDatabase.loadedNovelDocuments.get(id);
@@ -231,13 +229,15 @@ const moveLoadedNovelDocument = async (id: string, direction: 'up' | 'down'): Pr
     const documents = await getLoadedNovelDocuments();
     const currentIndex = documents.findIndex((document) => document.id === id);
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    if (!documents[currentIndex] || !documents[targetIndex]) return;
+    const current = documents[currentIndex];
+    const target = documents[targetIndex];
+    if (!current || !target) return;
 
-    [documents[currentIndex], documents[targetIndex]] = [documents[targetIndex], documents[currentIndex]];
-    await appDatabase.loadedNovelDocuments.bulkPut(documents.map((document, sortOrder) => ({
-      ...document,
-      sortOrder,
-    })));
+    // NOTE: 並び順は sortOrder の相対関係だけで決まるため、入れ替える2件だけを書き換える
+    await appDatabase.loadedNovelDocuments.bulkPut([
+      { ...current, sortOrder: target.sortOrder },
+      { ...target, sortOrder: current.sortOrder },
+    ]);
   });
 };
 
