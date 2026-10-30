@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.2.0](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.1.1...web-v1.2.0) (2026-10-30)
+
+
+### Features
+
+* **web:** 読み上げ音声の選択をCommandダイアログに変更し、ダイアログ内のスクロール不能を修正 ([056a080](https://github.com/souhait0614/yomutalk-plus/commit/056a080201d52d01c879c63f07d5030bd89e3024))
+
+
+### Bug Fixes
+
+* **deps:** update dependency svelte-sonner to v1.2.2 ([#41](https://github.com/souhait0614/yomutalk-plus/issues/41)) ([2b29bc3](https://github.com/souhait0614/yomutalk-plus/commit/2b29bc396bd243bac0eb103e6ac0de840fb31c7d))
+* **deps:** update npm production dependencies (non-major) ([#29](https://github.com/souhait0614/yomutalk-plus/issues/29)) ([3943944](https://github.com/souhait0614/yomutalk-plus/commit/39439446047c449ca0453125911c40bad8d07b49))
+* **web:** 各種リンクの並び順の変更と説明文の追加 ([662a334](https://github.com/souhait0614/yomutalk-plus/commit/662a334d5cf0fb732db5470ca26c31bcc732108e))
+* **web:** 小説の共有を送り方の選択とQRコード/小説ファイルで分離 ([1d32136](https://github.com/souhait0614/yomutalk-plus/commit/1d321369ab3380441b1fbd9bb2686449433360f8))
+* バックアップ時にダイアログを表示するように修正 ([3043759](https://github.com/souhait0614/yomutalk-plus/commit/3043759811ae0afabb663bef60933f8530a5651e))
+* 読み上げ文字の手動追加で読み方を入力できるように ([23dfa53](https://github.com/souhait0614/yomutalk-plus/commit/23dfa53bc581f238f02e08e308f711411fc32adb))
+
+
+### Performance Improvements
+
+* **web:** IndexedDB の読み書きを効率化 ([d1eac9a](https://github.com/souhait0614/yomutalk-plus/commit/d1eac9a411ef396c91c57abd37c26830050b444c))
+* **web:** スクロール中の localStorage 読み書きを削減 ([956cab2](https://github.com/souhait0614/yomutalk-plus/commit/956cab2b0a3209ff1d373cd69acb49ab185310bc))
+* **web:** ブックマークと小説一覧の参照を事前計算 ([6c3f1b7](https://github.com/souhait0614/yomutalk-plus/commit/6c3f1b72f1d73aa99d2da4d26b5ea86251c3422c))
+* **web:** 内蔵小説の更新チェックを並列化し再取得を抑止 ([d7aeda8](https://github.com/souhait0614/yomutalk-plus/commit/d7aeda81631cb311019ce4e33b322a9528c38574))
+* **web:** 同梱小説の解析済みデータをバンドルから削除 ([d165dd8](https://github.com/souhait0614/yomutalk-plus/commit/d165dd89e91b2f692d1ec5929c41c592f7e98903))
+
 ## [1.1.1](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.1.0...web-v1.1.1) (2026-10-22)
 
 
