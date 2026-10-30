@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/souhait0614/yomutalk-plus/compare/api-v1.0.0...api-v1.0.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deps:** update npm production dependencies (non-major) ([#29](https://github.com/souhait0614/yomutalk-plus/issues/29)) ([3943944](https://github.com/souhait0614/yomutalk-plus/commit/39439446047c449ca0453125911c40bad8d07b49))
+
 ## 1.0.0 (2026-10-19)
 
 
