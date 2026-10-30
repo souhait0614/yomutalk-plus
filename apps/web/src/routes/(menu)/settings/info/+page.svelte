@@ -41,15 +41,9 @@
         <IconBrandGithub/>
       {/snippet}
       {m.info_github_repo()}
-      {#snippet endIcon()}
-        <IconExternalLink/>
+      {#snippet description()}
+        このアプリのバグ報告・要望はこちらのIssueへお願いします
       {/snippet}
-    </NavigationItem>
-    <NavigationItem href='https://hyakkano.souhait.app/yomutalk-plus' target='_blank'>
-      {#snippet startIcon()}
-        <IconWorld/>
-      {/snippet}
-      {m.info_overview_page()}
       {#snippet endIcon()}
         <IconExternalLink/>
       {/snippet}
@@ -59,6 +53,18 @@
         <IconWorld/>
       {/snippet}
       {m.info_author_site()}
+      {#snippet description()}
+        このアプリに関する問い合わせはこちらに掲載されている各種SNSまたはメールアドレスへお願いします
+      {/snippet}
+      {#snippet endIcon()}
+        <IconExternalLink/>
+      {/snippet}
+    </NavigationItem>
+    <NavigationItem href='https://hyakkano.souhait.app/yomutalk-plus' target='_blank'>
+      {#snippet startIcon()}
+        <IconWorld/>
+      {/snippet}
+      {m.info_overview_page()}
       {#snippet endIcon()}
         <IconExternalLink/>
       {/snippet}
