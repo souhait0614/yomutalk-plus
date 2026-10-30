@@ -1,13 +1,11 @@
 # Changelog
 
-## [1.1.1](https://github.com/souhait0614/yomutalk-plus/compare/tts-v1.1.0...tts-v1.1.1) (2026-10-30)
+## [1.2.0](https://github.com/souhait0614/yomutalk-plus/compare/tts-v1.1.1...tts-v1.2.0) (2026-10-30)
 
 
-### Dependencies
+### Features
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @repo/api bumped to 1.0.1
+* 読み上げを制御するTTSパッケージを追加 ([6263a77](https://github.com/souhait0614/yomutalk-plus/commit/6263a7732b1a883f257c44c23531607f4cbd3128))
 
 ## [1.1.0](https://github.com/souhait0614/yomutalk-plus/compare/tts-v1.0.1...tts-v1.1.0) (2026-10-19)
 
