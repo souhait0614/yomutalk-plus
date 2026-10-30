@@ -45,7 +45,6 @@ const decompress = async (blob: Blob): Promise<Uint8Array<ArrayBuffer>> => (
   ).arrayBuffer())
 );
 
-/** 選択した小説を 1 ファイルへまとめて圧縮する。 */
 export const encodeSharedNovels = async (documents: LoadedNovelDocument[]): Promise<Blob> => {
   const { encode } = await import('cborg');
   const novels = await Promise.all(documents.map(async (document) => ({
@@ -84,21 +83,15 @@ export const decodeSharedNovels = async (blob: Blob): Promise<SharedNovel[]> => 
 /** 共有 ID の形式。推測できない値であればよいので、サーバー側と同じく緩く検証する。 */
 const sharedNovelIdPattern = /^[\w-]{16,64}$/;
 
-/** QR コードに載せる文字列。ほかの用途の QR コードと区別できるように接頭辞を付ける。 */
+/** ほかの用途の QR コードと区別できるように接頭辞を付ける。 */
 export const createSharedNovelsQrText = (id: string): string => `${novelShareQrPrefix}${id}`;
 
-/**
- * QR コードの文字列から共有 ID を取り出す。
- * よむとーく＋の共有用QRコードでなければ null を返す。
- */
 export const parseSharedNovelsQrText = (text: string): string | null => {
-  // 接頭辞のあとに余分な文字が続く QR コードは受け付けない
   if (!text.startsWith(novelShareQrPrefix)) return null;
   const id = text.slice(novelShareQrPrefix.length);
   return sharedNovelIdPattern.test(id) ? id : null;
 };
 
-/** 共有ファイルの名前。バックアップファイルと同じく日付を付ける。 */
 export const createSharedNovelsFileName = (): string => (
   `${novelShareFileExtension}-${getCurrentDateString()}.${novelShareFileExtension}`
 );

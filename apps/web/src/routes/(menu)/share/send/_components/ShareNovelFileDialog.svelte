@@ -84,7 +84,6 @@
       void prepare();
       return;
     }
-    // 閉じ終わったら次に開くときに備えて初期化する
     preparationToken += 1;
     status = 'preparing';
     blob = undefined;

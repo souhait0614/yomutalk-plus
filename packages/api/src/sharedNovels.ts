@@ -5,7 +5,6 @@ import * as v from 'valibot';
 
 import type { ApiEnv } from './types.ts';
 
-/** 共有ファイル 1 件あたりの上限サイズ。 */
 export const sharedNovelMaxFileSize = 20 * 1024 * 1024;
 
 export const sharedNovelContentType = 'application/octet-stream';

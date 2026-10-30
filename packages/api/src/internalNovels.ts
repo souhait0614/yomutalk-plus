@@ -12,7 +12,6 @@ export interface InternalNovelDefinition extends InternalNovelInfo {
   assetPath: string;
 }
 
-/** 同じ小説のバリエーション。 */
 export interface InternalNovelVariant {
   id: string;
   /** プルダウンの項目に表示する名前。 */
@@ -21,14 +20,13 @@ export interface InternalNovelVariant {
   assetPath: string;
 }
 
-/** バリエーションを持つ内蔵小説。ボタンではなくプルダウンで表示する。 */
+/** ボタンではなくプルダウンで表示する。 */
 export interface InternalNovelVariantGroup {
   id: string;
   title: string;
   variants: InternalNovelVariant[];
 }
 
-/** 内蔵小説一覧の項目。単体の小説か、バリエーションを持つ小説のいずれか。 */
 export type InternalNovelEntry = InternalNovelDefinition | InternalNovelVariantGroup;
 
 export const internalNovelAssetBaseUrl = 'https://assets.yomutalk.souhait.app/novel';

@@ -113,4 +113,3 @@ export const twFade = createTwTransition({ opacity: 0 });
 export const twSlideToTop = createTwTransition({ y: '-100%' });
 
 export const twSlideToBottom = createTwTransition({ y: '100%' });
-

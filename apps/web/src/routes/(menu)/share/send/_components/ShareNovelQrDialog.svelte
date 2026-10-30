@@ -36,7 +36,6 @@
   let preparationToken = 0;
 
   const prepare = async () => {
-    // 同じ組み合わせをアップロード済みなら、その共有 ID で QR コードを表示する
     if (uploadedSharedNovelsId) {
       sharedNovelsId = uploadedSharedNovelsId;
       status = 'ready';
@@ -68,7 +67,6 @@
       void prepare();
       return;
     }
-    // 閉じ終わったら次に開くときに備えて初期化する
     preparationToken += 1;
     status = 'preparing';
     sharedNovelsId = '';
