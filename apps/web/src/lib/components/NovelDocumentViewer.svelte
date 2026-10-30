@@ -164,7 +164,10 @@
     const element = getContainerElement();
     if (!element || element.clientWidth === 0 || element.clientHeight === 0) return;
     const nextScrollMax = getScrollMax();
-    measuredScroll = { documentId, scrollMax: nextScrollMax };
+    // NOTE: 毎フレーム呼ばれるため、値が変わったときだけ再代入して下流の再評価を抑える
+    if (measuredScroll?.documentId !== documentId || measuredScroll.scrollMax !== nextScrollMax) {
+      measuredScroll = { documentId, scrollMax: nextScrollMax };
+    }
     if (nextScrollMax !== scrollMax) scrollMax = nextScrollMax;
   };
 

@@ -181,14 +181,32 @@
   let scrollMax = $state(0);
   let novelDocumentViewer: ReturnType<typeof NovelDocumentViewer> | undefined = $state();
 
-  const scrollValueByDocumentId = new PersistedState<Record<string, number>>('scroll-value-by-document-id', {});
+  // NOTE: PersistedState.current は読み取りのたびに localStorage を読み JSON.parse するため、
+  // スクロール中はメモリ上の値だけを読み書きし、保存はデバウンスする
+  const persistedScrollValues = new PersistedState<Record<string, number>>('scroll-value-by-document-id', {});
+  const scrollValueByDocumentId = $state<Record<string, number>>(untrack(() => persistedScrollValues.current));
+  let scrollPersistTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  const flushScrollValues = () => {
+    clearTimeout(scrollPersistTimeout);
+    scrollPersistTimeout = undefined;
+    persistedScrollValues.current = { ...scrollValueByDocumentId };
+  };
+
+  const scheduleFlushScrollValues = () => {
+    clearTimeout(scrollPersistTimeout);
+    scrollPersistTimeout = setTimeout(flushScrollValues, 300);
+  };
+
   const currentDocumentId = $derived(loadedNovelDocuments[resolvedCurrentTabIndex]?.id);
   const getScrollValue = () => {
     if (currentDocumentId === undefined) return 0;
-    return scrollValueByDocumentId.current[currentDocumentId] ?? 0;
+    return scrollValueByDocumentId[currentDocumentId] ?? 0;
   };
   const setScrollValue = (value: number) => {
-    if (currentDocumentId !== undefined) scrollValueByDocumentId.current[currentDocumentId] = value;
+    if (currentDocumentId === undefined) return;
+    scrollValueByDocumentId[currentDocumentId] = value;
+    scheduleFlushScrollValues();
   };
 
   $effect(() => {
@@ -480,8 +498,14 @@
 
   const debouncedHandleSelectionChange = useDebounce(handleSelectionChange, 200);
 
+  $effect(() => {
+    window.addEventListener('pagehide', flushScrollValues);
+    return () => window.removeEventListener('pagehide', flushScrollValues);
+  });
+
   onCleanup(() => {
     debouncedHandleSelectionChange.cancel();
+    flushScrollValues();
   });
 
 </script>
