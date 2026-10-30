@@ -16,6 +16,8 @@
 
   const updatingDocumentIds = new SvelteSet<string>();
 
+  // NOTE: 同じ小説×本文ハッシュの判定結果は使い回し、ライブラリを編集するたびに取得し直さない
+  const latestHashByDocumentKey: Record<string, string> = {};
   let checkRunId = 0;
 
   $effect(() => {
@@ -28,9 +30,19 @@
 
     const runId = ++checkRunId;
     void (async () => {
-      for (const document of internalDocuments) {
-        const latestHash = await fetchInternalNovelHash(document.novelId).catch(() => undefined);
-        if (runId !== checkRunId || latestHash === undefined) continue;
+      const results = await Promise.all(internalDocuments.map(async (document) => {
+        const key = `${document.novelId}:${document.hash}`;
+        let latestHash = latestHashByDocumentKey[key];
+        if (latestHash === undefined) {
+          latestHash = await fetchInternalNovelHash(document.novelId).catch(() => undefined);
+          if (latestHash !== undefined) latestHashByDocumentKey[key] = latestHash;
+        }
+        return { document, latestHash };
+      }));
+      if (runId !== checkRunId) return;
+
+      for (const { document, latestHash } of results) {
+        if (latestHash === undefined) continue;
         if (latestHash === document.hash) updatedDocumentIds.delete(document.id);
         else updatedDocumentIds.add(document.id);
       }
