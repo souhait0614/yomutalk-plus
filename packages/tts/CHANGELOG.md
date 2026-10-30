@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.1](https://github.com/souhait0614/yomutalk-plus/compare/tts-v1.1.0...tts-v1.1.1) (2026-10-30)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @repo/api bumped to 1.0.1
+
 ## [1.1.0](https://github.com/souhait0614/yomutalk-plus/compare/tts-v1.0.1...tts-v1.1.0) (2026-10-19)
 
 
