@@ -44,13 +44,16 @@
     onAddToSelectedTexts,
   }: BookmarkSectionProps = $props();
 
+  const loadedNovelDocumentTitles = $derived(
+    Object.fromEntries(loadedNovelDocuments.map(({ id, title }) => [id, title])),
+  );
+
   const getDocumentTitle = (bookmark: Bookmark) => {
     if (bookmark.documentId === null) return m.bookmark_no_document();
-    return loadedNovelDocuments.find(({ id }) => id === bookmark.documentId)?.title ?? m.bookmark_deleted_document();
+    return loadedNovelDocumentTitles[bookmark.documentId] ?? m.bookmark_deleted_document();
   };
   const canRestoreLocation = (bookmark: Bookmark) => (
-    bookmark.documentId !== null
-    && loadedNovelDocuments.some(({ id }) => id === bookmark.documentId)
+    bookmark.documentId !== null && loadedNovelDocumentTitles[bookmark.documentId] !== undefined
   );
 </script>
 

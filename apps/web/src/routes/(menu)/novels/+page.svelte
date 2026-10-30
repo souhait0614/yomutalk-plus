@@ -32,8 +32,9 @@
   const currentTabIndex = new PersistedState<number>('current-tab-index', 0);
   let search = $state('');
   let formatFilter = $state('all');
+  const normalizedSearch = $derived(search.trim().toLocaleLowerCase());
   const filteredDocuments = $derived(documents.filter((document) => (
-    document.title.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
+    document.title.toLocaleLowerCase().includes(normalizedSearch)
     && (formatFilter === 'all' || document.fileType === formatFilter)
   )));
 

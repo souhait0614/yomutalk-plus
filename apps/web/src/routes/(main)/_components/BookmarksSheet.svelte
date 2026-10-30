@@ -39,7 +39,18 @@
   const bookmarkFoldersQuery = stateQuery(getBookmarkFolders);
   const bookmarks = $derived(bookmarksQuery.current ?? []);
   const bookmarkFolders = $derived(bookmarkFoldersQuery.current ?? []);
-  const uncategorizedBookmarks = $derived(bookmarks.filter(({ folderId }) => folderId === null));
+  const bookmarksByFolderId = $derived.by(() => {
+    const groups: Record<string, Bookmark[]> = {};
+    for (const bookmark of bookmarks) {
+      // NOTE: folderId が null のものは未分類として空文字キーに入れる（UUID と衝突しない）
+      const key = bookmark.folderId ?? '';
+      const group = groups[key];
+      if (group) group.push(bookmark);
+      else groups[key] = [bookmark];
+    }
+    return groups;
+  });
+  const uncategorizedBookmarks = $derived(bookmarksByFolderId[''] ?? []);
   const bookmarkFolderItems = $derived([
     { value: '', label: m.bookmark_folder_uncategorized() },
     ...bookmarkFolders.map(({ id, name }) => ({ value: id, label: name })),
@@ -54,7 +65,7 @@
   let deleteDialogOpen = $state(false);
   let isDeleting = $state(false);
 
-  const getFolderBookmarks = (folderId: string) => bookmarks.filter((bookmark) => bookmark.folderId === folderId);
+  const getFolderBookmarks = (folderId: string) => bookmarksByFolderId[folderId] ?? [];
   const toggleCollapsedSection = (sectionId: string) => {
     collapsedSections.current[sectionId] = !collapsedSections.current[sectionId];
   };
