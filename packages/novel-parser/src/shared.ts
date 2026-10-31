@@ -2,9 +2,11 @@ import type {
   BracketInline,
   BracketKind,
   NovelInline,
+  NovelInlineStyle,
   NovelSentence,
   NovelTextType,
   SpaceInline,
+  TextInline,
 } from './types.ts';
 
 const SENTENCE_DELIMITERS = new Set([
@@ -90,7 +92,7 @@ export function splitSentences(inlines: NovelInline[]): NovelSentence[] {
       continue;
     }
 
-    for (const part of splitTextBySentence(inline.value)) {
+    for (const part of splitTextBySentence(inline)) {
       if (part.type === 'bracket') {
         pushBracket(part);
       } else if (part.type === 'space') {
@@ -111,7 +113,8 @@ function isSentenceDelimiter(char: string | undefined): boolean {
   return char !== undefined && SENTENCE_DELIMITERS.has(char);
 }
 
-function splitTextBySentence(text: string): NovelInline[] {
+function splitTextBySentence(inline: TextInline): NovelInline[] {
+  const style = inline.style;
   const result: NovelInline[] = [];
   let current = '';
   let previousWasDelimiter = false;
@@ -119,11 +122,11 @@ function splitTextBySentence(text: string): NovelInline[] {
 
   const flushText = () => {
     if (current === '') return;
-    result.push({ type: 'text', value: current });
+    result.push(createTextInline(current, style));
     current = '';
   };
 
-  for (const char of text) {
+  for (const char of inline.value) {
     const isDelimiter = SENTENCE_DELIMITERS.has(char);
 
     if (previousWasDelimiter && !isDelimiter) {
@@ -133,24 +136,24 @@ function splitTextBySentence(text: string): NovelInline[] {
     if (bracketCloser !== undefined) {
       if (char === bracketCloser) {
         flushText();
-        result.push(createBracketInline(char, 'close'));
+        result.push(createBracketInline(char, 'close', style));
         bracketCloser = undefined;
       } else if (SPACES.has(char)) {
         flushText();
-        result.push(createSpaceInline(char));
+        result.push(createSpaceInline(char, style));
       } else {
         current += char;
       }
     } else if (BRACKET_PAIRS.has(char)) {
       flushText();
-      result.push(createBracketInline(char, 'open'));
+      result.push(createBracketInline(char, 'open', style));
       bracketCloser = BRACKET_PAIRS.get(char);
     } else if (BRACKET_CLOSERS.has(char)) {
       flushText();
-      result.push(createBracketInline(char, 'close'));
+      result.push(createBracketInline(char, 'close', style));
     } else if (SPACES.has(char)) {
       flushText();
-      result.push(createSpaceInline(char));
+      result.push(createSpaceInline(char, style));
     } else {
       current += char;
     }
@@ -163,12 +166,20 @@ function splitTextBySentence(text: string): NovelInline[] {
   return result;
 }
 
-function createBracketInline(value: string, kind: BracketKind): BracketInline {
-  return { type: 'bracket', value, kind };
+function createTextInline(value: string, style: NovelInlineStyle | undefined): TextInline {
+  return { type: 'text', value, ...(style === undefined ? {} : { style }) };
 }
 
-function createSpaceInline(value: string): SpaceInline {
-  return { type: 'space', value };
+function createBracketInline(
+  value: string,
+  kind: BracketKind,
+  style: NovelInlineStyle | undefined,
+): BracketInline {
+  return { type: 'bracket', value, kind, ...(style === undefined ? {} : { style }) };
+}
+
+function createSpaceInline(value: string, style: NovelInlineStyle | undefined): SpaceInline {
+  return { type: 'space', value, ...(style === undefined ? {} : { style }) };
 }
 
 export function classifySentenceTextType(inlines: NovelInline[]): NovelTextType {
