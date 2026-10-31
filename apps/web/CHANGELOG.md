@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.2.0...web-v1.2.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **web:** プライバシーポリシーのリンクを追加 ([f63f06c](https://github.com/souhait0614/yomutalk-plus/commit/f63f06c7385118cc10de61a873645460e5343ec4))
+* **web:** 情報ページの未翻訳文言を i18n 対応 ([8d09b89](https://github.com/souhait0614/yomutalk-plus/commit/8d09b897b3bc7d14fad3bd7c1ee209e693523508))
+
 ## [1.2.0](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.1.1...web-v1.2.0) (2026-10-30)
 
 
