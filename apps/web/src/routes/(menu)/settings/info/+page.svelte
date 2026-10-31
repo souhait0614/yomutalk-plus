@@ -69,5 +69,14 @@
         <IconExternalLink/>
       {/snippet}
     </NavigationItem>
+    <NavigationItem href='https://hyakkano.souhait.app/privacy' target='_blank'>
+      {#snippet startIcon()}
+        <IconWorld/>
+      {/snippet}
+      {m.info_privacy_policy()}
+      {#snippet endIcon()}
+        <IconExternalLink/>
+      {/snippet}
+    </NavigationItem>
   </section>
 </div>
