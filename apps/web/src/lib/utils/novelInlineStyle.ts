@@ -80,10 +80,6 @@ export const getNovelInlineStyleAttribute = (style: NovelInlineStyle | undefined
     }
   }
 
-  if (style.frame === true) {
-    declarations.push('border: 1px solid currentColor', 'padding-inline: 0.15em');
-  }
-
   if (fontSize !== 1) declarations.push(`font-size: ${fontSize.toFixed(2)}em`);
 
   return declarations.length === 0 ? undefined : declarations.join('; ');

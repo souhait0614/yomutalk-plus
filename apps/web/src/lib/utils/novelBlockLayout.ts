@@ -31,10 +31,6 @@ export const getNovelBlockStyleAttribute = (
 
   if (block.horizontal === true) declarations.push('writing-mode: horizontal-tb');
 
-  if (block.frame === true) {
-    declarations.push('border: 1px solid currentColor', 'padding: 0.2em 0.4em');
-  }
-
   if (block.caption === true) declarations.push('font-size: 0.85em');
 
   return declarations.length === 0 ? undefined : declarations.join('; ');

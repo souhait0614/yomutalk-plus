@@ -28,8 +28,6 @@
  *   - 縦中横: ［＃「○○」は縦中横］［＃縦中横］…［＃縦中横終わり］
  *   - 上付き小文字・行右小書き／下付き小文字・行左小書き（開始／終了型も可）
  *   - 文字サイズ: ［＃「○○」はＮ段階大きな文字］［＃「○○」はＮ段階小さな文字］
- *   - 罫囲み: ［＃「○○」は罫囲み］［＃ここから罫囲み］…［＃ここで罫囲み終わり］
- *     ※ ブロックの罫囲みは一行ごとの段落に枠を付ける（複数行を一つの枠にはまとめない）。
  *   - 割り注: ［＃割り注］…［＃割り注終わり］（丸括弧で囲まれていないときは括弧を補う。
  *     旧形式の［＃ここから割り注］…［＃ここで割り注終わり］も可）
  *   - 訓点: ［＃レ］［＃一レ］などの返り点、［＃（ノ）］などの訓点送り仮名
@@ -57,6 +55,8 @@
  *   HTML の ruby では左ルビを表現できないため、読み飛ばす。
  * ・注記付き: ［＃注記付き］…［＃「…」の注記付き終わり］
  *   親文字の左に添える注記を保持する場所がないため、読み飛ばす。
+ * ・罫囲み: ［＃「○○」は罫囲み］［＃ここから罫囲み］…［＃ここで罫囲み終わり］
+ *   本文を一行ごとのブロックとして扱っており、複数行を一つの枠にまとめられないため、注記だけを読み飛ばす（本文は残す）。
  * ・本文の訂正・異同の注記: ［＃「○○」は底本では「…」］［＃ルビの「…」は底本では「…」］
  *   本文の読みには影響しないため、読み飛ばす。
  * ・注記としてのママ: ［＃「○○」はママ］
@@ -94,8 +94,6 @@ const RISE_START = /^ここから地から([０-９0-9]+)字上げ$/u;
 const RISE_END = 'ここで字上げ終わり';
 const WIDTH_START = /^ここから([０-９0-9]+)字詰め$/u;
 const WIDTH_END = 'ここで字詰め終わり';
-const FRAME_START = 'ここから罫囲み';
-const FRAME_END = 'ここで罫囲み終わり';
 const CAPTION_START = 'ここからキャプション';
 const CAPTION_END = 'ここでキャプション終わり';
 const HORIZONTAL_START = 'ここから横組み';
@@ -113,7 +111,6 @@ const PAGE_BREAK = /^(?:改丁|改ページ|改見開き|改段)$/u;
 // NOTE: ブロック用の注記でも、開始と終了が同じ行にそろっている場合は行中の修飾として扱う
 const INLINE_NOTE_PAIRS: readonly (readonly [string, string])[] = [
   [HORIZONTAL_START, HORIZONTAL_END],
-  [FRAME_START, FRAME_END],
   [BOLD_START, BOLD_END],
   [ITALIC_START, ITALIC_END],
 ];
@@ -130,7 +127,6 @@ interface AozoraLayoutState {
   wrapIndent?: number;
   width?: number;
   rise?: number;
-  frame?: boolean;
   caption?: boolean;
   horizontal?: boolean;
   center?: boolean;
@@ -343,7 +339,6 @@ function getAozoraLineFormat(line: string, state: AozoraLayoutState): AozoraLine
   } else if (nextState.center === true) {
     layout.align = 'center';
   }
-  if (nextState.frame === true) layout.frame = true;
   if (nextState.caption === true || AOZORA_CAPTION.test(content)) layout.caption = true;
   if (nextState.horizontal === true) layout.horizontal = true;
 
@@ -441,16 +436,6 @@ function applyLayoutNote(note: string, context: AozoraLineLayout, line: string):
 
   if (widthStart !== null) {
     state.width = parseIndent(widthStart[1]);
-    return true;
-  }
-
-  if (note === FRAME_START) {
-    state.frame = true;
-    return true;
-  }
-
-  if (note === FRAME_END) {
-    state.frame = undefined;
     return true;
   }
 

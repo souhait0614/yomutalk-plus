@@ -71,7 +71,6 @@ function buildMarkerStyles(): ReadonlyMap<string, NovelInlineStyle> {
   markers.set('下付き小文字', { script: 'subscript' });
   markers.set('行左小書き', { script: 'subscript' });
   markers.set('横組み', { horizontal: true });
-  markers.set('罫囲み', { frame: true });
   markers.set(WARICHU_MARKER, { warichu: true });
 
   return markers;
@@ -97,7 +96,6 @@ export function mergeInlineStyles(
     if (style.script) (merged ??= {}).script = style.script;
     if (style.fontSizeStep !== undefined) (merged ??= {}).fontSizeStep = style.fontSizeStep;
     if (style.horizontal) (merged ??= {}).horizontal = true;
-    if (style.frame) (merged ??= {}).frame = true;
     if (style.warichu) (merged ??= {}).warichu = true;
     if (style.kunten) (merged ??= {}).kunten = style.kunten;
     if (style.inlineHeading) (merged ??= {}).inlineHeading = style.inlineHeading;
@@ -387,7 +385,6 @@ function readForwardNoteStyle(rest: string): NovelInlineStyle | undefined {
     case 'は下付き小文字':
     case 'は行左小書き': return { script: 'subscript' };
     case 'は横組み': return { horizontal: true };
-    case 'は罫囲み': return { frame: true };
     default: break;
   }
 

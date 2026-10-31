@@ -53,8 +53,6 @@ export interface NovelInlineStyle {
   fontSizeStep?: number;
   /** 行中の横組み。 */
   horizontal?: boolean;
-  /** 罫囲み。 */
-  frame?: boolean;
   /** 割り注。 */
   warichu?: boolean;
   /** 訓点。返り点と訓点送り仮名。 */
@@ -118,8 +116,6 @@ export interface BlockLayout {
   width?: number;
   /** 地からの字上げ。地寄せのあきを表す。 */
   rise?: number;
-  /** 罫囲み。 */
-  frame?: boolean;
   /** 図版のキャプション。 */
   caption?: boolean;
   /** 横組み。 */

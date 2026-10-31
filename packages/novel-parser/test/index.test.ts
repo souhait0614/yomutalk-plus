@@ -608,16 +608,16 @@ test('wraps warichu in parentheses only when the source has none', () => {
   assert.deepEqual(legacy[1], { type: 'bracket', value: '（', kind: 'open', style: { warichu: true } });
 });
 
-test('applies font size, frame, and inline heading styles', () => {
+test('applies font size and inline heading styles', () => {
   const inlines = getParagraphInlines(
-    '県立高女の怪事［＃「県立高女の怪事」は２段階大きな文字］と本日記事解禁［＃「本日記事解禁」は１段階小さな文字］［＃「本日記事解禁」は罫囲み］',
+    '県立高女の怪事［＃「県立高女の怪事」は２段階大きな文字］と本日記事解禁［＃「本日記事解禁」は１段階小さな文字］',
   );
 
   assert.deepEqual(inlines[0], { type: 'text', value: '県立高女の怪事', style: { fontSizeStep: 2 } });
   assert.deepEqual(inlines[2], {
     type: 'text',
     value: '本日記事解禁',
-    style: { fontSizeStep: -1, frame: true },
+    style: { fontSizeStep: -1 },
   });
 
   const heading = getParagraphInlines('龍王岬［＃「龍王岬」は窓中見出し］　峨々たる岩岬。');
@@ -680,9 +680,6 @@ test('converts Aozora layout annotations', () => {
     '［＃ここから１０字詰め］',
     '字詰めの段落',
     '［＃ここで字詰め終わり］',
-    '［＃ここから罫囲み］',
-    '罫囲みの段落',
-    '［＃ここで罫囲み終わり］',
     '［＃ここから横組み］',
     '横組みの段落',
     '［＃ここで横組み終わり］',
@@ -693,7 +690,7 @@ test('converts Aozora layout annotations', () => {
   ].join('\n'));
 
   assert.deepEqual(blocks.map((block) => block.type), [
-    'paragraph', 'paragraph', 'paragraph', 'paragraph', 'paragraph', 'paragraph',
+    'paragraph', 'paragraph', 'paragraph', 'paragraph', 'paragraph',
   ]);
   assert.deepEqual(blocks[0], {
     type: 'paragraph',
@@ -701,9 +698,8 @@ test('converts Aozora layout annotations', () => {
     sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '章の名前' }] }],
   });
   assert.equal(blocks[1]?.type === 'paragraph' ? blocks[1].width : undefined, 10);
-  assert.equal(blocks[2]?.type === 'paragraph' ? blocks[2].frame : undefined, true);
-  assert.equal(blocks[3]?.type === 'paragraph' ? blocks[3].horizontal : undefined, true);
-  assert.equal(blocks[4]?.type === 'paragraph' ? blocks[4].wrapIndent : undefined, 1);
+  assert.equal(blocks[2]?.type === 'paragraph' ? blocks[2].horizontal : undefined, true);
+  assert.equal(blocks[3]?.type === 'paragraph' ? blocks[3].wrapIndent : undefined, 1);
 
   const nested = parseAozoraBlocks([
     '［＃ここから２字下げ］',
@@ -724,6 +720,25 @@ test('converts Aozora layout annotations', () => {
     rise: 2,
     sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '長谷川辰之助' }] }],
   });
+});
+
+test('ignores kekomi annotations', () => {
+  assert.deepEqual(
+    getParagraphInlines('本日記事解禁［＃「本日記事解禁」は罫囲み］'),
+    [{ type: 'text', value: '本日記事解禁' }],
+  );
+
+  const blocks = parseAozoraBlocks([
+    '［＃ここから罫囲み］',
+    '罫囲みの段落',
+    '［＃ここで罫囲み終わり］',
+  ].join('\n'));
+  assert.deepEqual(blocks, [
+    {
+      type: 'paragraph',
+      sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '罫囲みの段落' }] }],
+    },
+  ]);
 });
 
 test('converts caption annotations', () => {
