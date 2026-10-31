@@ -4,6 +4,7 @@
   import type { HTMLAttributes } from 'svelte/elements';
   import { showRuby } from '$lib/appSettings.svelte';
   import { gaijiFallbackCharacter, getNovelInlineTextLength } from '$lib/utils/novelInlines';
+  import { getNovelInlineStyleAttribute } from '$lib/utils/novelInlineStyle';
 
   interface NovelInlineContentProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'children'> {
     readonly inlines: readonly NovelInline[];
@@ -127,7 +128,7 @@
   });
 </script>
 
-{#snippet inlineItem(inline: NovelInline)}
+{#snippet inlineBody(inline: NovelInline)}
   {#if inline.type === 'ruby'}
     <ruby>{inline.base}<rt
       class='
@@ -140,6 +141,15 @@
   {:else if inline.type === 'space'}
     <span data-novel-space>{inline.value}</span>
   {:else}{inline.value}{/if}
+{/snippet}
+
+{#snippet inlineItem(inline: NovelInline)}
+  {@const styleAttribute = getNovelInlineStyleAttribute(inline.style)}
+  {#if styleAttribute === undefined}
+    {@render inlineBody(inline)}
+  {:else}
+    <span style={styleAttribute}>{@render inlineBody(inline)}</span>
+  {/if}
 {/snippet}
 
 {#snippet inlineItems(values: readonly NovelInline[])}

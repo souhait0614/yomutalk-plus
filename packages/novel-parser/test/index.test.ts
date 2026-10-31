@@ -438,7 +438,7 @@ test('marks heading sentences as heading text type', () => {
     '--------------------',
     '記号について',
     '--------------------',
-    '［＃「見出し」は中見出し］',
+    '見出し［＃「見出し」は中見出し］',
     '底本：テスト',
   ].join('\n'));
 
@@ -494,4 +494,295 @@ test('preserves ruby when splitting sentences', () => {
     `Expected 2 sentences, got ${paragraph.sentences.length}`,
   );
   assert.equal(paragraph.sentences[0]?.inlines[0]?.type, 'ruby');
+});
+
+function getParagraphInlines(body: string): NovelInline[] {
+  const sentences = parseParagraphSentences(body);
+  return sentences.flatMap((sentence) => sentence.inlines);
+}
+
+function parseAozoraBlocks(body: string) {
+  return parseAozoraText([
+    'テストタイトル',
+    'テスト著者',
+    '',
+    '--------------------',
+    '記号について',
+    '--------------------',
+    body,
+    '底本：テスト',
+  ].join('\n')).blocks;
+}
+
+test('applies emphasis dots and lines from forward annotations', () => {
+  const inlines = getParagraphInlines(
+    '腹がへっても［＃「腹がへっても」に傍点］、この形は傍線［＃「傍線」に傍線］です。',
+  );
+
+  assert.deepEqual(inlines, [
+    { type: 'text', value: '腹がへっても', style: { emphasis: { mark: 'sesame-dot', side: 'right' } } },
+    { type: 'text', value: '、' },
+    { type: 'text', value: 'この形は' },
+    { type: 'text', value: '傍線', style: { line: { mark: 'solid', side: 'right' } } },
+    { type: 'text', value: 'です。' },
+  ]);
+
+  const leftDots = getParagraphInlines('責［＃「責」の左に白丸傍点］空文庫');
+  assert.deepEqual(leftDots[0], {
+    type: 'text',
+    value: '責',
+    style: { emphasis: { mark: 'white-circle', side: 'left' } },
+  });
+});
+
+test('applies start and end style annotations', () => {
+  const inlines = getParagraphInlines(
+    '［＃傍点］青空文庫で読書しよう［＃傍点終わり］。［＃二重傍線］強調［＃二重傍線終わり］。',
+  );
+
+  assert.deepEqual(inlines, [
+    { type: 'text', value: '青空文庫で読書しよう', style: { emphasis: { mark: 'sesame-dot', side: 'right' } } },
+    { type: 'text', value: '。' },
+    { type: 'text', value: '強調', style: { line: { mark: 'double', side: 'right' } } },
+    { type: 'text', value: '。' },
+  ]);
+});
+
+test('merges overlapping emphasis annotations', () => {
+  const inlines = getParagraphInlines(
+    'このプロジェクトを、青空［＃「青空」に傍点］文庫［＃「青空文庫」に傍線］と呼んでいます。',
+  );
+
+  assert.deepEqual(inlines[1], {
+    type: 'text',
+    value: '青空',
+    style: {
+      emphasis: { mark: 'sesame-dot', side: 'right' },
+      line: { mark: 'solid', side: 'right' },
+    },
+  });
+  assert.deepEqual(inlines[2], {
+    type: 'text',
+    value: '文庫',
+    style: { line: { mark: 'solid', side: 'right' } },
+  });
+});
+
+test('keeps bold, italic, and ruby together', () => {
+  const inlines = getParagraphInlines(
+    '「［＃太字］選考するんだ［＃太字終わり］」と、来《き》た［＃「来た」に白丸傍点］。',
+  );
+
+  assert.deepEqual(inlines[1], { type: 'text', value: '選考するんだ', style: { bold: true } });
+
+  const ruby = inlines.find((inline) => inline.type === 'ruby');
+  assert.deepEqual(ruby, {
+    type: 'ruby',
+    base: '来',
+    reading: 'き',
+    style: { emphasis: { mark: 'white-circle', side: 'right' } },
+  });
+});
+
+test('applies tate-chu-yoko and script annotations', () => {
+  const inlines = getParagraphInlines(
+    '米機Ｂ29［＃「29」は縦中横］と22［＃「2」は上付き小文字］とH2［＃「2」は下付き小文字］O。',
+  );
+
+  assert.deepEqual(inlines[1], { type: 'text', value: '29', style: { tateChuYoko: true } });
+  assert.deepEqual(inlines[3], { type: 'text', value: '2', style: { script: 'superscript' } });
+  assert.deepEqual(inlines[5], { type: 'text', value: '2', style: { script: 'subscript' } });
+});
+
+test('wraps warichu in parentheses only when the source has none', () => {
+  const bare = getParagraphInlines('理論家の説と［＃割り注］ヒロソヒイ［＃割り注終わり］政治家の事。');
+  assert.deepEqual(bare[1], { type: 'bracket', value: '（', kind: 'open', style: { warichu: true } });
+  assert.deepEqual(bare[2], { type: 'text', value: 'ヒロソヒイ', style: { warichu: true } });
+  assert.deepEqual(bare[3], { type: 'bracket', value: '）', kind: 'close', style: { warichu: true } });
+
+  const bracketed = getParagraphInlines('被官（［＃割り注］中世の下級武士［＃割り注終わり］）、下部。');
+  const brackets = bracketed.filter((inline) => inline.type === 'bracket' && inline.value === '（');
+  assert.equal(brackets.length, 1);
+
+  const legacy = getParagraphInlines('理論家の説と［＃ここから割り注］ヒロソヒイ［＃ここで割り注終わり］政治家。');
+  assert.deepEqual(legacy[1], { type: 'bracket', value: '（', kind: 'open', style: { warichu: true } });
+});
+
+test('applies font size, frame, and inline heading styles', () => {
+  const inlines = getParagraphInlines(
+    '県立高女の怪事［＃「県立高女の怪事」は２段階大きな文字］と本日記事解禁［＃「本日記事解禁」は１段階小さな文字］［＃「本日記事解禁」は罫囲み］',
+  );
+
+  assert.deepEqual(inlines[0], { type: 'text', value: '県立高女の怪事', style: { fontSizeStep: 2 } });
+  assert.deepEqual(inlines[2], {
+    type: 'text',
+    value: '本日記事解禁',
+    style: { fontSizeStep: -1, frame: true },
+  });
+
+  const heading = getParagraphInlines('龍王岬［＃「龍王岬」は窓中見出し］　峨々たる岩岬。');
+  assert.deepEqual(heading[0], {
+    type: 'text',
+    value: '龍王岬',
+    style: { inlineHeading: { level: 2, style: 'window' } },
+  });
+});
+
+test('turns mama annotations into ruby', () => {
+  const inlines = getParagraphInlines('吹喋［＃「喋」に「ママ」の注記］');
+  assert.deepEqual(inlines.at(-1), { type: 'ruby', base: '喋', reading: 'ママ' });
+});
+
+test('applies inline horizontal writing annotations', () => {
+  const marked = getParagraphInlines('有名な［＃横組み］λ-4［＃横組み終わり］の方則');
+  assert.deepEqual(marked[0], { type: 'text', value: '有名な' });
+  assert.deepEqual(marked[1], { type: 'text', value: 'λ-4', style: { horizontal: true } });
+
+  const braced = getParagraphInlines('［＃ここから横組み］Ａ＋Ｂ［＃ここで横組み終わり］という式');
+  assert.deepEqual(braced[0], { type: 'text', value: 'Ａ＋Ｂ', style: { horizontal: true } });
+
+  const targeted = getParagraphInlines('スハフ［＃「スハフ」は横組み］と書く');
+  assert.deepEqual(targeted[0], { type: 'text', value: 'スハフ', style: { horizontal: true } });
+});
+
+test('keeps text when a mama annotation cannot be applied', () => {
+  // NOTE: 対象がルビや外字をまたぐ場合は注記を適用しないが、本文は失わない
+  const rubyTarget = getParagraphInlines('見《み》た［＃「見た」に「ママ」の注記］。');
+  assert.deepEqual(rubyTarget, [
+    { type: 'ruby', base: '見', reading: 'み' },
+    { type: 'text', value: 'た。' },
+  ]);
+
+  const gaijiTarget = getParagraphInlines('外※［＃「にんべん＋外」］《がい》です［＃「がいです」に「ママ」の注記］。');
+  assert.deepEqual(gaijiTarget, [
+    { type: 'text', value: '外' },
+    { type: 'gaiji', description: '「にんべん＋外」', reading: 'がい' },
+    { type: 'text', value: 'です。' },
+  ]);
+});
+
+test('keeps kunten annotations as small text', () => {
+  const inlines = getParagraphInlines('自［＃二］女王國［＃一］東度［＃レ］海千餘里。山城［＃（ノ）］國。');
+
+  assert.deepEqual(inlines[1], { type: 'text', value: '二', style: { kunten: 'kaeriten' } });
+  assert.deepEqual(inlines[3], { type: 'text', value: '一', style: { kunten: 'kaeriten' } });
+  assert.deepEqual(inlines[5], { type: 'text', value: 'レ', style: { kunten: 'kaeriten' } });
+
+  const okurigana = inlines.find((inline) => inline.type === 'text' && inline.value === 'ノ');
+  assert.deepEqual(okurigana, { type: 'text', value: 'ノ', style: { kunten: 'okurigana' } });
+});
+
+test('converts Aozora layout annotations', () => {
+  const blocks = parseAozoraBlocks([
+    '［＃ページの左右中央］',
+    '章の名前',
+    '［＃改ページ］',
+    '［＃ここから１０字詰め］',
+    '字詰めの段落',
+    '［＃ここで字詰め終わり］',
+    '［＃ここから罫囲み］',
+    '罫囲みの段落',
+    '［＃ここで罫囲み終わり］',
+    '［＃ここから横組み］',
+    '横組みの段落',
+    '［＃ここで横組み終わり］',
+    '［＃ここから改行天付き、折り返して１字下げ］',
+    '箇条書きの段落',
+    '［＃ここで字下げ終わり］',
+    '［＃地から２字上げ］長谷川辰之助',
+  ].join('\n'));
+
+  assert.deepEqual(blocks.map((block) => block.type), [
+    'paragraph', 'paragraph', 'paragraph', 'paragraph', 'paragraph', 'paragraph',
+  ]);
+  assert.deepEqual(blocks[0], {
+    type: 'paragraph',
+    align: 'center',
+    sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '章の名前' }] }],
+  });
+  assert.equal(blocks[1]?.type === 'paragraph' ? blocks[1].width : undefined, 10);
+  assert.equal(blocks[2]?.type === 'paragraph' ? blocks[2].frame : undefined, true);
+  assert.equal(blocks[3]?.type === 'paragraph' ? blocks[3].horizontal : undefined, true);
+  assert.equal(blocks[4]?.type === 'paragraph' ? blocks[4].wrapIndent : undefined, 1);
+
+  const nested = parseAozoraBlocks([
+    '［＃ここから２字下げ］',
+    '引用',
+    '［＃ここから改行天付き、折り返して１字下げ］',
+    '箇条書き',
+    '［＃ここで字下げ終わり］',
+  ].join('\n'));
+  const nestedParagraph = nested[1];
+  assert.ok(nestedParagraph?.type === 'paragraph');
+  assert.equal(nestedParagraph.indent, 2);
+  assert.equal(nestedParagraph.wrapIndent, 3);
+
+  const rise = parseAozoraBlocks('［＃地から２字上げ］長谷川辰之助')[0];
+  assert.deepEqual(rise, {
+    type: 'paragraph',
+    align: 'end',
+    rise: 2,
+    sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '長谷川辰之助' }] }],
+  });
+});
+
+test('converts caption annotations', () => {
+  const blocks = parseAozoraBlocks([
+    '大獅子金剛大ラマの水刑［＃「大獅子金剛大ラマの水刑」はキャプション］',
+    '［＃ここからキャプション］',
+    '第３図『雪華図説』図版第十面',
+    '［＃ここでキャプション終わり］',
+  ].join('\n'));
+
+  assert.deepEqual(blocks.map((block) => block.type === 'paragraph' && block.caption), [true, true]);
+});
+
+test('converts block and inline heading annotations', () => {
+  const blocks = parseAozoraBlocks([
+    '［＃ここから中見出し］',
+    '章の見出し',
+    '［＃ここで中見出し終わり］',
+    '［＃大見出し］序［＃大見出し終わり］',
+    '清水詣《きよみずもう》で［＃「清水詣で」は大見出し］',
+  ].join('\n'));
+
+  assert.deepEqual(blocks.map((block) => block.type), ['heading', 'heading', 'heading']);
+  assert.deepEqual(blocks.map((block) => block.type === 'heading' && block.level), [2, 1, 1]);
+  assert.equal(
+    blocks[0]?.type === 'heading' ? blocks[0].sentences[0]?.textType : undefined,
+    'heading',
+  );
+});
+
+test('applies block-wide bold and skips annotation-only lines', () => {
+  const blocks = parseAozoraBlocks([
+    '［＃ここから太字］',
+    '太字の段落',
+    '［＃ここで太字終わり］',
+    '［＃石鏃二つの図（fig42154_01.png、横321×縦123）入る］',
+  ].join('\n'));
+
+  assert.deepEqual(blocks, [
+    {
+      type: 'paragraph',
+      sentences: [
+        { textType: 'narration', inlines: [{ type: 'text', value: '太字の段落', style: { bold: true } }] },
+      ],
+    },
+  ]);
+});
+
+test('stops the body at the Aozora body end annotation', () => {
+  const blocks = parseAozoraBlocks([
+    '本文です。',
+    '［＃本文終わり］',
+    '入力：入力者',
+  ].join('\n'));
+
+  assert.deepEqual(blocks, [
+    {
+      type: 'paragraph',
+      sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '本文です。' }] }],
+    },
+  ]);
 });

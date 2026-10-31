@@ -10,6 +10,7 @@
   import NovelInlineContent from '$lib/components/NovelInlineContent.svelte';
   import { m } from '$lib/paraglide/messages';
   import { twFade } from '$lib/transitions';
+  import { getNovelBlockStyleAttribute } from '$lib/utils/novelBlockLayout';
   import { getNovelInlinesTextLength, resolveSentenceHighlightRange } from '$lib/utils/novelInlines';
   import { cn } from 'cn';
   import { PersistedState } from 'runed';
@@ -601,8 +602,7 @@
             {#if block.level === 1}
               <h3
                 data-novel-block={blockIndex}
-                style:text-align={block.align}
-                style:margin-inline-start={block.indent ? `${block.indent}em` : undefined}>
+                style={getNovelBlockStyleAttribute(block, writingMode)}>
                 {#each block.sentences as sentence, sentenceIndex (sentenceIndex)}
                   {@render documentSentence(sentence, blockIndex, sentenceIndex)}
                 {/each}
@@ -610,8 +610,7 @@
             {:else if block.level === 2}
               <h4
                 data-novel-block={blockIndex}
-                style:text-align={block.align}
-                style:margin-inline-start={block.indent ? `${block.indent}em` : undefined}>
+                style={getNovelBlockStyleAttribute(block, writingMode)}>
                 {#each block.sentences as sentence, sentenceIndex (sentenceIndex)}
                   {@render documentSentence(sentence, blockIndex, sentenceIndex)}
                 {/each}
@@ -619,8 +618,7 @@
             {:else}
               <h5
                 data-novel-block={blockIndex}
-                style:text-align={block.align}
-                style:margin-inline-start={block.indent ? `${block.indent}em` : undefined}>
+                style={getNovelBlockStyleAttribute(block, writingMode)}>
                 {#each block.sentences as sentence, sentenceIndex (sentenceIndex)}
                   {@render documentSentence(sentence, blockIndex, sentenceIndex)}
                 {/each}
@@ -629,8 +627,7 @@
           {:else}
             <p
               data-novel-block={blockIndex}
-              style:text-align={block.align}
-              style:margin-inline-start={block.indent ? `${block.indent}em` : undefined}>
+              style={getNovelBlockStyleAttribute(block, writingMode)}>
               {#each block.sentences as sentence, sentenceIndex (sentenceIndex)}
                 {@render documentSentence(sentence, blockIndex, sentenceIndex)}
               {/each}
