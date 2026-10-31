@@ -9,6 +9,10 @@
   } | {
     kind: 'heading';
     level: '大' | '中' | '小';
+  } | {
+    kind: 'chapter';
+  } | {
+    kind: 'pageBreak';
   };
 </script>
 
@@ -230,10 +234,10 @@
           <IconPencilPlus/>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
-          <DropdownMenu.Item onSelect={() => oninsert({ kind: 'text', prefix: '[chapter:', suffix: ']', placeholder: '章タイトル', wholeLine: true })}>
+          <DropdownMenu.Item onSelect={() => oninsert({ kind: 'chapter' })}>
             <IconHeading/> {m.editor_chapter()}
           </DropdownMenu.Item>
-          <DropdownMenu.Item onSelect={() => oninsert({ kind: 'text', prefix: '[newpage]\n', wholeLine: true })}>
+          <DropdownMenu.Item onSelect={() => oninsert({ kind: 'pageBreak' })}>
             <IconPageBreak/> {m.editor_page_break()}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
