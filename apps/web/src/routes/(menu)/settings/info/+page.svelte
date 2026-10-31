@@ -14,7 +14,7 @@
     <div class='flex flex-col items-center gap-2 p-2'>
       <img
         src='/images/icon-256.png'
-        alt='Yomutalk Plus Icon'
+        alt={m.info_app_icon_alt()}
         class='size-16 rounded-sm'>
       <div class='flex flex-col items-center'>
         <p class='text-lg'>{m.app_name()}</p>
@@ -42,7 +42,7 @@
       {/snippet}
       {m.info_github_repo()}
       {#snippet description()}
-        このアプリのバグ報告・要望はこちらのIssueへお願いします
+        {m.info_github_repo_description()}
       {/snippet}
       {#snippet endIcon()}
         <IconExternalLink/>
@@ -54,7 +54,7 @@
       {/snippet}
       {m.info_author_site()}
       {#snippet description()}
-        このアプリに関する問い合わせはこちらに掲載されている各種SNSまたはメールアドレスへお願いします
+        {m.info_author_site_description()}
       {/snippet}
       {#snippet endIcon()}
         <IconExternalLink/>
