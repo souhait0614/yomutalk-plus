@@ -37,6 +37,11 @@
     document.title.toLocaleLowerCase().includes(normalizedSearch)
     && (formatFilter === 'all' || document.fileType === formatFilter)
   )));
+  const getFormatLabel = (fileType: LoadedNovelDocumentFileType) => {
+    if (fileType === 'aozoratext') return m.format_aozora();
+    if (fileType === 'pixivnovel') return m.format_pixiv();
+    return m.format_plain();
+  };
 
   let createDialogOpen = $state(false);
   let createFileType = $state<LoadedNovelDocumentFileType>('aozoratext');
@@ -191,6 +196,7 @@
     <NativeSelect.Root aria-label={m.novel_filter_by_format()} bind:value={formatFilter}>
       <NativeSelect.Option value='all'>{m.novel_filter_all_formats()}</NativeSelect.Option>
       <NativeSelect.Option value='aozoratext'>{m.format_aozora()}</NativeSelect.Option>
+      <NativeSelect.Option value='pixivnovel'>{m.format_pixiv()}</NativeSelect.Option>
       <NativeSelect.Option value='plaintext'>{m.format_plain()}</NativeSelect.Option>
     </NativeSelect.Root>
   </div>
@@ -231,7 +237,7 @@
                 mt-1 flex flex-wrap items-center gap-2 text-xs
                 text-muted-foreground
               '>
-              <span>{document.fileType === 'aozoratext' ? m.format_aozora() : m.format_plain()}</span>
+              <span>{getFormatLabel(document.fileType)}</span>
               {#if document.type === 'internal'}<Badge variant='outline'>{m.novel_badge_internal()}</Badge>{/if}
             </div>
           </div>

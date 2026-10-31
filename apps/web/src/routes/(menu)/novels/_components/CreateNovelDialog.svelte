@@ -49,11 +49,12 @@
           disabled={busy}
           bind:value={fileType}>
           <NativeSelect.Option value='aozoratext'>{m.format_aozora()}</NativeSelect.Option>
+          <NativeSelect.Option value='pixivnovel'>{m.format_pixiv()}</NativeSelect.Option>
           <NativeSelect.Option value='plaintext'>{m.format_plain()}</NativeSelect.Option>
         </NativeSelect.Root>
       </div>
       <div class='flex flex-col gap-2'>
-        <Label for='create-novel-title'>{fileType === 'plaintext' ? m.novel_filename() : m.novel_title()}</Label>
+        <Label for='create-novel-title'>{fileType === 'aozoratext' ? m.novel_title() : m.novel_filename()}</Label>
         <Input
           id='create-novel-title'
           required

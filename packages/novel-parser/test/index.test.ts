@@ -6,6 +6,7 @@ import type { NovelInline, NovelSentence } from '../src/index.ts';
 import {
   composeAozoraText,
   parseAozoraText,
+  parsePixivNovel,
   parsePlainText,
   splitAozoraText,
 } from '../src/index.ts';
@@ -800,4 +801,98 @@ test('stops the body at the Aozora body end annotation', () => {
       sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '本文です。' }] }],
     },
   ]);
+});
+
+
+test('converts pixiv novel tags', () => {
+  const novel = parsePixivNovel([
+    '[chapter:第一章]',
+    '',
+    '彼は[[rb:漢字 > かんじ]]を書いた。',
+    '[b:太字]と[i:斜体]と[[emphasismark:傍点>﹅]]。',
+    '[[jumpuri:リンク > https://example.com]]を見る。',
+    '[newpage]',
+    '[pixivimage:12345]',
+    '終わり。',
+  ].join('\n'), { title: 'テスト', author: null });
+
+  assert.equal(novel.format, 'pixiv-novel');
+  assert.deepEqual(novel.blocks, [
+    {
+      type: 'heading',
+      level: 1,
+      sentences: [{ textType: 'heading', inlines: [{ type: 'text', value: '第一章' }] }],
+    },
+    { type: 'blank' },
+    {
+      type: 'paragraph',
+      sentences: [{
+        textType: 'narration',
+        inlines: [
+          { type: 'text', value: '彼は' },
+          { type: 'ruby', base: '漢字', reading: 'かんじ' },
+          { type: 'text', value: 'を書いた。' },
+        ],
+      }],
+    },
+    {
+      type: 'paragraph',
+      sentences: [{
+        textType: 'narration',
+        inlines: [
+          { type: 'text', value: '太字', style: { bold: true } },
+          { type: 'text', value: 'と' },
+          { type: 'text', value: '斜体', style: { italic: true } },
+          { type: 'text', value: 'と' },
+          {
+            type: 'text',
+            value: '傍点',
+            style: { emphasis: { mark: 'sesame-dot', character: '﹅', side: 'right' } },
+          },
+          { type: 'text', value: '。' },
+        ],
+      }],
+    },
+    {
+      type: 'paragraph',
+      sentences: [{
+        textType: 'narration',
+        inlines: [{ type: 'text', value: 'リンクを見る。' }],
+      }],
+    },
+    {
+      type: 'paragraph',
+      sentences: [{
+        textType: 'narration',
+        inlines: [{ type: 'text', value: '終わり。' }],
+      }],
+    },
+  ]);
+});
+
+test('maps pixiv emphasis marks to the nearest kind', () => {
+  const blocks = parsePixivNovel('[[emphasismark:強調>○]]と[[emphasismark:任意>☆]]', {
+    title: 'テスト', author: null,
+  });
+  const paragraph = blocks.blocks[0];
+  assert.ok(paragraph?.type === 'paragraph');
+  const inlines = paragraph.sentences.flatMap((sentence) => sentence.inlines);
+
+  assert.deepEqual(inlines, [
+    { type: 'text', value: '強調', style: { emphasis: { mark: 'white-circle', character: '○', side: 'right' } } },
+    { type: 'text', value: 'と' },
+    { type: 'text', value: '任意', style: { emphasis: { mark: 'sesame-dot', character: '☆', side: 'right' } } },
+  ]);
+});
+
+test('keeps unknown pixiv tags and legacy ruby notation as text', () => {
+  const blocks = parsePixivNovel('｜漢字《かんじ》と[foo:bar]と前[newpage]後', { title: 'テスト', author: null });
+  const paragraph = blocks.blocks[0];
+  assert.ok(paragraph?.type === 'paragraph');
+
+  const text = paragraph.sentences.flatMap((sentence) => sentence.inlines)
+    .map((inline) => (inline.type === 'ruby' ? inline.base : inline.type === 'gaiji' ? '' : inline.value))
+    .join('');
+
+  assert.equal(text, '｜漢字《かんじ》と[foo:bar]と前後');
 });

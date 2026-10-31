@@ -14,7 +14,7 @@
 
 <script lang='ts'>
   import type { LoadedNovelDocumentFileType } from '$lib/db';
-  import { IconBrackets, IconHeading, IconPencilPlus, IconSpace, IconTypography } from '@tabler/icons-svelte';
+  import { IconBold, IconBrackets, IconHeading, IconHighlight, IconItalic, IconPageBreak, IconPencilPlus, IconSpace, IconTypography } from '@tabler/icons-svelte';
   import { m } from '$lib/paraglide/messages';
   import { buttonVariants } from '$lib/shadcn-svelte/components/ui/button';
   import * as DropdownMenu from '$lib/shadcn-svelte/components/ui/dropdown-menu';
@@ -176,6 +176,65 @@
           </DropdownMenu.Item>
           <DropdownMenu.Item onSelect={() => oninsert({ kind: 'text', prefix: '', suffix: '［＃地付き］', wholeLine: true })}>
             {m.editor_attach_bottom()}
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+    {:else if fileType === 'pixivnovel'}
+      <span class='mx-1 h-5 border-l' aria-hidden='true'></span>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          class={toolClass}
+          {disabled}
+          aria-label={m.editor_insert_ruby()}
+          onclick={() => oninsert({ kind: 'text', prefix: '[[rb:', suffix: ' > よみ]]', placeholder: '漢字', suffixSelection: { start: 3, end: 5 } })}>
+          <IconTypography/>
+        </Tooltip.Trigger>
+        <Tooltip.Content>{m.editor_ruby()}</Tooltip.Content>
+      </Tooltip.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          class={toolClass}
+          {disabled}
+          aria-label={m.editor_bold()}
+          onclick={() => oninsert({ kind: 'text', prefix: '[b:', suffix: ']', placeholder: '太字' })}>
+          <IconBold/>
+        </Tooltip.Trigger>
+        <Tooltip.Content>{m.editor_bold()}</Tooltip.Content>
+      </Tooltip.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          class={toolClass}
+          {disabled}
+          aria-label={m.editor_italic()}
+          onclick={() => oninsert({ kind: 'text', prefix: '[i:', suffix: ']', placeholder: '斜体' })}>
+          <IconItalic/>
+        </Tooltip.Trigger>
+        <Tooltip.Content>{m.editor_italic()}</Tooltip.Content>
+      </Tooltip.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          class={toolClass}
+          {disabled}
+          aria-label={m.editor_emphasis_mark()}
+          onclick={() => oninsert({ kind: 'text', prefix: '[[emphasismark:', suffix: '>﹅]]', placeholder: '傍点', suffixSelection: { start: 1, end: 2 } })}>
+          <IconHighlight/>
+        </Tooltip.Trigger>
+        <Tooltip.Content>{m.editor_emphasis_mark()}</Tooltip.Content>
+      </Tooltip.Root>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger
+          class={toolClass}
+          {disabled}
+          aria-label={m.editor_pixiv_notes()}
+          title={m.editor_pixiv_notes()}>
+          <IconPencilPlus/>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.Item onSelect={() => oninsert({ kind: 'text', prefix: '[chapter:', suffix: ']', placeholder: '章タイトル', wholeLine: true })}>
+            <IconHeading/> {m.editor_chapter()}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item onSelect={() => oninsert({ kind: 'text', prefix: '[newpage]\n', wholeLine: true })}>
+            <IconPageBreak/> {m.editor_page_break()}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Root>

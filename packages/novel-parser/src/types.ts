@@ -1,4 +1,4 @@
-export type NovelFormat = 'plain-text' | 'aozora-text';
+export type NovelFormat = 'plain-text' | 'aozora-text' | 'pixiv-novel';
 
 export type NovelTextType = 'dialogue' | 'narration' | 'heading';
 
@@ -34,6 +34,8 @@ export interface NovelInlineStyle {
   /** 傍点。side が 'left' のときは行の左（縦組み）に打たれた傍点を表す。 */
   emphasis?: {
     mark: EmphasisMark;
+    /** 任意の傍点1文字（pixiv小説記法など）。指定した場合は mark より優先する。 */
+    character?: string;
     side: InlineSide;
   };
   /** 傍線。side が 'left' のときは行の左（縦組み）に引かれた傍線を表す。 */

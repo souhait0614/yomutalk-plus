@@ -105,6 +105,9 @@ const getLoadedNovelDocumentFileTitle = (
     case 'plaintext': {
       return fileName;
     }
+    case 'pixivnovel': {
+      return fileName;
+    }
     case 'aozoratext': {
       const novelDocument = parseAozoraText(decodeTextContent(content));
       return novelDocument.title || fileName;

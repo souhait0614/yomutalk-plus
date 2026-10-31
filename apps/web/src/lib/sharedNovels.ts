@@ -24,7 +24,7 @@ const sharedNovelsPayloadSchema = v.object({
   version: v.literal(sharedNovelsFormatVersion),
   novels: v.array(v.object({
     data: v.instance(Uint8Array),
-    fileType: v.picklist(['plaintext', 'aozoratext']),
+    fileType: v.picklist(['plaintext', 'aozoratext', 'pixivnovel']),
     title: v.string(),
     writingMode: v.picklist(['horizontal-tb', 'vertical-rl', 'vertical-lr']),
     isEditLocked: v.optional(v.boolean(), false),

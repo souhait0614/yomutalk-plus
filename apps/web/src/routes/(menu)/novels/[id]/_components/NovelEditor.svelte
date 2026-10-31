@@ -1,13 +1,14 @@
 <script lang='ts'>
   import type { NovelDocument } from '@repo/novel-parser';
   import type { LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
-  import { parseAozoraText, parsePlainText } from '@repo/novel-parser';
+  import { parsePlainText } from '@repo/novel-parser';
   import { IconEye, IconPencil } from '@tabler/icons-svelte';
   import NovelDocumentViewer from '$lib/components/NovelDocumentViewer.svelte';
   import { m } from '$lib/paraglide/messages';
   import * as InputGroup from '$lib/shadcn-svelte/components/ui/input-group';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import * as Tabs from '$lib/shadcn-svelte/components/ui/tabs';
+  import { parseNovelDocument } from '$lib/utils/novelParsing';
   import { onMount, tick } from 'svelte';
   import { MediaQuery } from 'svelte/reactivity';
 
@@ -80,9 +81,7 @@
         blocksByLine[sourceLineIndex - lineOffset] = blockIndex;
         blockIndex += 1;
       };
-      previewDocument = nextFileType === 'aozoratext'
-        ? parseAozoraText(nextSource, { onBlock })
-        : parsePlainText(nextSource, { title: nextTitle, author: null, onBlock });
+      previewDocument = parseNovelDocument(nextFileType, nextSource, { title: nextTitle, onBlock });
       previewBlockByLine = blocksByLine;
       previewPending = false;
       scheduleCursorPreview();
