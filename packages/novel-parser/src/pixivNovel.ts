@@ -16,6 +16,8 @@
  *   リンク先は扱わず、タイトルの文字だけを本文に残す。
  * ・改ページ: [newpage]
  *   リフロー表示では紙面の区切りを再現しないため、読み飛ばす。
+ * ・入れ子: [b:…] の内側に [i:…] や [[rb:…]] などを置いた形
+ *   内側のタグから順に修飾を重ねる。
  *
  * == 対応していない記法 ==
  * ・挿絵: [pixivimage:イラストID] [uploadedimage:挿絵ID]
@@ -24,8 +26,6 @@
  *   ページを持たないため、タグだけを読み飛ばす。
  * ・記法変換機能の変換元: ｜漢字《かんじ》 《《漢字》》
  *   pixiv小説記法ではないため解釈しない（《》は本文の文字として残す）。
- * ・入れ子のタグ: [b:…] の内側に [[rb:…]] などを置く形
- *   タグの終端が内側の ]] と重なるため、入れ子は扱わない。
  * ・未知のタグ: [foo:…] など
  *   本文を失わないよう、タグを文字としてそのまま残す。
  */
@@ -38,7 +38,7 @@ import type {
   NovelSentence,
   PlainTextOptions,
 } from './types.ts';
-import { normalizeSource, splitSentences } from './shared.ts';
+import { mergeInlineStyles, normalizeSource, splitSentences } from './shared.ts';
 
 const CHAPTER_TAG = /^\s*\[chapter:([^\]]*)\]/u;
 const PAGE_BREAK_LINE = /^\s*\[newpage\]\s*$/u;
@@ -120,10 +120,17 @@ function hasInlines(sentences: readonly NovelSentence[]): boolean {
 }
 
 function parsePixivInline(line: string): NovelInline[] {
+  return parsePixivSegment(line, undefined);
+}
+
+/**
+ * 入れ子のタグは内側から順に修飾を重ねる。
+ */
+function parsePixivSegment(text: string, baseStyle: NovelInlineStyle | undefined): NovelInline[] {
   const inlines: NovelInline[] = [];
   let cursor = 0;
 
-  const appendText = (value: string, style?: NovelInlineStyle): void => {
+  const appendText = (value: string, style: NovelInlineStyle | undefined = baseStyle): void => {
     if (value === '') return;
 
     const previous = inlines.at(-1);
@@ -136,97 +143,19 @@ function parsePixivInline(line: string): NovelInline[] {
     inlines.push({ type: 'text', value, ...(style === undefined ? {} : { style }) });
   };
 
-  const handleDoubleTag = (body: string): boolean => {
-    const separator = body.indexOf(':');
+  while (cursor < text.length) {
+    const tag = readPixivTag(text, cursor);
 
-    if (separator === -1) return false;
+    if (tag !== undefined) {
+      const nextCursor = applyPixivTag(tag, baseStyle, inlines);
 
-    const name = body.slice(0, separator);
-    const value = body.slice(separator + 1);
-
-    switch (name) {
-      case 'rb': {
-        const split = value.lastIndexOf('>');
-
-        if (split === -1) return false;
-
-        const base = value.slice(0, split).trim();
-        const reading = value.slice(split + 1).trim();
-
-        if (base === '' || reading === '') return false;
-
-        inlines.push({ type: 'ruby', base, reading });
-        return true;
-      }
-      case 'emphasismark': {
-        const split = value.lastIndexOf('>');
-
-        if (split === -1) return false;
-
-        const text = value.slice(0, split).trim();
-        const character = value.slice(split + 1).trim() || DEFAULT_EMPHASIS_MARK;
-
-        if (text === '') return false;
-
-        appendText(text, {
-          emphasis: {
-            mark: EMPHASIS_MARKS.get(character) ?? 'sesame-dot',
-            character,
-            side: 'right',
-          },
-        });
-        return true;
-      }
-      case 'jumpuri': {
-        const split = value.lastIndexOf('>');
-        const title = (split === -1 ? value : value.slice(0, split)).trim();
-
-        appendText(title);
-        return true;
-      }
-      default: return false;
-    }
-  };
-
-  const handleSingleTag = (body: string): boolean => {
-    if (body === 'newpage') return true;
-    if (body.startsWith('pixivimage:')) return true;
-    if (body.startsWith('uploadedimage:')) return true;
-    if (body.startsWith('jump:')) return true;
-
-    if (body.startsWith('b:')) {
-      appendText(body.slice('b:'.length), { bold: true });
-      return true;
-    }
-
-    if (body.startsWith('i:')) {
-      appendText(body.slice('i:'.length), { italic: true });
-      return true;
-    }
-
-    return false;
-  };
-
-  while (cursor < line.length) {
-    if (line.startsWith('[[', cursor)) {
-      const end = line.indexOf(']]', cursor + 2);
-
-      if (end !== -1 && handleDoubleTag(line.slice(cursor + 2, end))) {
-        cursor = end + 2;
+      if (nextCursor !== undefined) {
+        cursor = nextCursor;
         continue;
       }
     }
 
-    if (line[cursor] === '[') {
-      const end = line.indexOf(']', cursor + 1);
-
-      if (end !== -1 && handleSingleTag(line.slice(cursor + 1, end))) {
-        cursor = end + 1;
-        continue;
-      }
-    }
-
-    const codePoint = line.codePointAt(cursor);
+    const codePoint = text.codePointAt(cursor);
 
     if (codePoint === undefined) break;
 
@@ -236,6 +165,124 @@ function parsePixivInline(line: string): NovelInline[] {
   }
 
   return inlines;
+}
+
+// eslint-disable-next-line @stylistic/operator-linebreak -- 長い union は行頭の | で揃えたい
+type PixivTag =
+  | { kind: 'bare'; name: string; end: number; }
+  | { kind: 'single'; name: string; content: string; end: number; }
+  | { kind: 'double'; name: string; content: string; end: number; };
+
+/**
+ * 指定位置から始まるタグを読み取る。閉じ位置は角括弧の対応を数えて決めるため、
+ * 入れ子になったタグも 1 つのタグとして切り出せる。
+ */
+function readPixivTag(text: string, start: number): PixivTag | undefined {
+  if (text[start] !== '[') return undefined;
+
+  const end = findPixivTagEnd(text, start);
+
+  if (end === undefined) return undefined;
+
+  const isDouble = text.startsWith('[[', start);
+  const body = text.slice(start + (isDouble ? 2 : 1), end - (isDouble ? 1 : 0));
+  const separator = body.indexOf(':');
+
+  if (separator === -1) return { kind: 'bare', name: body, end };
+
+  return {
+    kind: isDouble ? 'double' : 'single',
+    name: body.slice(0, separator),
+    content: body.slice(separator + 1),
+    end,
+  };
+}
+
+function findPixivTagEnd(text: string, start: number): number | undefined {
+  let depth = 0;
+
+  for (let index = start; index < text.length; index += 1) {
+    if (text[index] === '[') {
+      depth += 1;
+    } else if (text[index] === ']') {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+
+  return undefined;
+}
+
+function applyPixivTag(
+  tag: PixivTag,
+  baseStyle: NovelInlineStyle | undefined,
+  inlines: NovelInline[],
+): number | undefined {
+  const nextCursor = tag.end + 1;
+
+  if (tag.kind === 'bare') {
+    return tag.name === 'newpage' ? nextCursor : undefined;
+  }
+
+  if (tag.kind === 'double') {
+    switch (tag.name) {
+      case 'rb': {
+        const split = tag.content.lastIndexOf('>');
+
+        if (split === -1) return undefined;
+
+        const base = tag.content.slice(0, split).trim();
+        const reading = tag.content.slice(split + 1).trim();
+
+        if (base === '' || reading === '') return undefined;
+
+        inlines.push({ type: 'ruby', base, reading, ...(baseStyle === undefined ? {} : { style: baseStyle }) });
+        return nextCursor;
+      }
+      case 'emphasismark': {
+        const split = tag.content.lastIndexOf('>');
+
+        if (split === -1) return undefined;
+
+        const marked = tag.content.slice(0, split).trim();
+        const character = tag.content.slice(split + 1).trim() || DEFAULT_EMPHASIS_MARK;
+
+        if (marked === '') return undefined;
+
+        inlines.push(...parsePixivSegment(marked, mergeInlineStyles(baseStyle, {
+          emphasis: {
+            mark: EMPHASIS_MARKS.get(character) ?? 'sesame-dot',
+            character,
+            side: 'right',
+          },
+        })));
+        return nextCursor;
+      }
+      case 'jumpuri': {
+        const split = tag.content.lastIndexOf('>');
+        const title = (split === -1 ? tag.content : tag.content.slice(0, split)).trim();
+
+        inlines.push(...parsePixivSegment(title, baseStyle));
+        return nextCursor;
+      }
+      default: return undefined;
+    }
+  }
+
+  switch (tag.name) {
+    case 'pixivimage':
+    case 'uploadedimage':
+    case 'jump': return nextCursor;
+    case 'b': {
+      inlines.push(...parsePixivSegment(tag.content, mergeInlineStyles(baseStyle, { bold: true })));
+      return nextCursor;
+    }
+    case 'i': {
+      inlines.push(...parsePixivSegment(tag.content, mergeInlineStyles(baseStyle, { italic: true })));
+      return nextCursor;
+    }
+    default: return undefined;
+  }
 }
 
 function stylesEqual(a: NovelInlineStyle | undefined, b: NovelInlineStyle | undefined): boolean {

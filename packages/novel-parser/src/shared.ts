@@ -9,6 +9,34 @@ import type {
   TextInline,
 } from './types.ts';
 
+/**
+ * 開始／終了型でない修飾注記を一つにまとめる。
+ * 同じ種類の修飾は、後から指定された内容で上書きする。
+ */
+export function mergeInlineStyles(
+  ...styles: readonly (NovelInlineStyle | undefined)[]
+): NovelInlineStyle | undefined {
+  let merged: NovelInlineStyle | undefined;
+
+  for (const style of styles) {
+    if (!style) continue;
+
+    if (style.emphasis) (merged ??= {}).emphasis = style.emphasis;
+    if (style.line) (merged ??= {}).line = style.line;
+    if (style.bold) (merged ??= {}).bold = true;
+    if (style.italic) (merged ??= {}).italic = true;
+    if (style.tateChuYoko) (merged ??= {}).tateChuYoko = true;
+    if (style.script) (merged ??= {}).script = style.script;
+    if (style.fontSizeStep !== undefined) (merged ??= {}).fontSizeStep = style.fontSizeStep;
+    if (style.horizontal) (merged ??= {}).horizontal = true;
+    if (style.warichu) (merged ??= {}).warichu = true;
+    if (style.kunten) (merged ??= {}).kunten = style.kunten;
+    if (style.inlineHeading) (merged ??= {}).inlineHeading = style.inlineHeading;
+  }
+
+  return merged;
+}
+
 const SENTENCE_DELIMITERS = new Set([
   '。', '．', '｡',
   '、', '，', '､',

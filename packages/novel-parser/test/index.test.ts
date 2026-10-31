@@ -885,6 +885,28 @@ test('maps pixiv emphasis marks to the nearest kind', () => {
   ]);
 });
 
+test('supports nested pixiv tags', () => {
+  const novel = parsePixivNovel(
+    '[b:太字と[i:斜体太字]]と[[emphasismark:[b:傍点太字]>○]]と[b:[[rb:漢字 > かんじ]]]',
+    { title: 'テスト', author: null },
+  );
+  const paragraph = novel.blocks[0];
+  assert.ok(paragraph?.type === 'paragraph');
+
+  assert.deepEqual(paragraph.sentences.flatMap((sentence) => sentence.inlines), [
+    { type: 'text', value: '太字と', style: { bold: true } },
+    { type: 'text', value: '斜体太字', style: { bold: true, italic: true } },
+    { type: 'text', value: 'と' },
+    {
+      type: 'text',
+      value: '傍点太字',
+      style: { bold: true, emphasis: { mark: 'white-circle', character: '○', side: 'right' } },
+    },
+    { type: 'text', value: 'と' },
+    { type: 'ruby', base: '漢字', reading: 'かんじ', style: { bold: true } },
+  ]);
+});
+
 test('keeps unknown pixiv tags and legacy ruby notation as text', () => {
   const blocks = parsePixivNovel('｜漢字《かんじ》と[foo:bar]と前[newpage]後', { title: 'テスト', author: null });
   const paragraph = blocks.blocks[0];
