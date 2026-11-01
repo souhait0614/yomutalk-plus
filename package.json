@@ -19,6 +19,7 @@
     "lint:fix:root": "eslint . --fix --no-config-lookup --config eslint.config.ts",
     "lint:repo": "turbo run lint",
     "lint:root": "eslint . --no-config-lookup --config eslint.config.ts",
+    "test": "turbo run test",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
