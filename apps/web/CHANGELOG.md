@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.0](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.2.1...web-v1.3.0) (2026-11-01)
+
+
+### Features
+
+* **novel-parser:** pixiv小説記法に対応する ([#51](https://github.com/souhait0614/yomutalk-plus/issues/51)) ([5345a68](https://github.com/souhait0614/yomutalk-plus/commit/5345a68953496f9c19b5e9ee98229b1c93bf8204))
+* **novel-parser:** 青空文庫注記の対応を広げる ([#48](https://github.com/souhait0614/yomutalk-plus/issues/48)) ([ea84df2](https://github.com/souhait0614/yomutalk-plus/commit/ea84df222e5eaa5313738723a756375d5194fe73))
+
+
+### Bug Fixes
+
+* **web:** ファイル読み込みボタンの並び順を修正 ([#53](https://github.com/souhait0614/yomutalk-plus/issues/53)) ([ea3c228](https://github.com/souhait0614/yomutalk-plus/commit/ea3c2280a49b72917a9ea1f0d7e6627fd842ca56))
+
 ## [1.2.1](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.2.0...web-v1.2.1) (2026-10-31)
 
 
