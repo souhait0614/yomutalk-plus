@@ -125,12 +125,28 @@ test('converts Aozora headings, ruby, and gaiji', () => {
 
   assert.equal(novel.title, '配布用タイトル');
   assert.equal(novel.author, '配布用著者');
-  assert.equal(novel.blocks.length, 3);
-  assert.equal(novel.blocks[0]?.type, 'heading');
+  assert.deepEqual(novel.blocks[0], {
+    type: 'heading',
+    level: 2,
+    indent: 8,
+    sentences: [{ textType: 'heading', inlines: [{ type: 'text', value: '一' }] }],
+  });
   assert.deepEqual(novel.blocks[1], { type: 'blank' });
   const paragraph = novel.blocks[2];
   assert.ok(paragraph?.type === 'paragraph');
-  assert.ok(paragraph.sentences.length > 0);
+  assert.deepEqual(paragraph.sentences.map((sentence) => sentence.inlines), [
+    [{ type: 'space', value: '　' }],
+    [
+      { type: 'ruby', base: '吾輩', reading: 'わがはい' },
+      { type: 'text', value: 'は一番' },
+      { type: 'ruby', base: '獰悪', reading: 'どうあく' },
+      { type: 'text', value: 'で、' },
+    ],
+    [
+      { type: 'gaiji', description: '「言＋墟のつくり」', reading: 'いつ' },
+      { type: 'text', value: 'わる。' },
+    ],
+  ]);
 });
 
 test('keeps Aozora blank lines and drops blanks around metadata', () => {
@@ -387,7 +403,9 @@ test('converts the provided samples', async () => {
   const aozoraNovel = parseAozoraText(aozoraSourceText);
   const firstAozoraParagraph = aozoraNovel.blocks.find((block) => block.type === 'paragraph');
 
-  assert.equal(plainNovel.blocks.length > 0, true);
+  const firstPlainParagraph = plainNovel.blocks.find((block) => block.type === 'paragraph');
+  assert.ok(firstPlainParagraph?.type === 'paragraph');
+  assert.ok(firstPlainParagraph.sentences.length > 0);
   assert.equal(aozoraNovel.title, '吾輩は猫である');
   assert.equal(aozoraNovel.author, '夏目漱石');
   assert.deepEqual(aozoraNovel.blocks[0], {

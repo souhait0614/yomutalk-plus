@@ -9,7 +9,7 @@ const parseBlocks = (source: string): NovelBlock[] => parsePixivNovel(source, {
   author: null,
 }).blocks;
 
-const joinInlineText = (inlines: readonly NovelInline[]): string => inlines
+const joinVisibleText = (inlines: readonly NovelInline[]): string => inlines
   .map((inline) => {
     if (inline.type === 'text' || inline.type === 'bracket' || inline.type === 'space') return inline.value;
     return '';
@@ -158,16 +158,16 @@ test('drops illustration and page-link tags', () => {
 });
 
 test('keeps unknown tags literal', () => {
-  assert.equal(joinInlineText(parseInlines('a[foo:bar]b')), 'a[foo:bar]b');
+  assert.equal(joinVisibleText(parseInlines('a[foo:bar]b')), 'a[foo:bar]b');
 });
 
 test('keeps a bare bracket literal', () => {
-  assert.equal(joinInlineText(parseInlines('a[注]b')), 'a[注]b');
+  assert.equal(joinVisibleText(parseInlines('a[注]b')), 'a[注]b');
 });
 
 test('keeps unclosed tags literal', () => {
-  assert.equal(joinInlineText(parseInlines('a[b:c')), 'a[b:c');
-  assert.equal(joinInlineText(parseInlines('a[[rb:x > y')), 'a[[rb:x > y');
+  assert.equal(joinVisibleText(parseInlines('a[b:c')), 'a[b:c');
+  assert.equal(joinVisibleText(parseInlines('a[[rb:x > y')), 'a[[rb:x > y');
 });
 
 test('supports nested bold and italic', () => {
