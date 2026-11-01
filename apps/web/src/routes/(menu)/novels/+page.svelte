@@ -19,6 +19,7 @@
   import * as NativeSelect from '$lib/shadcn-svelte/components/ui/native-select';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { getErrorMessage } from '$lib/utils/misc';
+  import { getNovelFileName } from '$lib/utils/novelFile';
   import { decodeTextFile } from '$lib/utils/textEncoding';
   import { stateQuery } from 'dexie-svelte-query';
   import { PersistedState } from 'runed';
@@ -37,6 +38,11 @@
     document.title.toLocaleLowerCase().includes(normalizedSearch)
     && (formatFilter === 'all' || document.fileType === formatFilter)
   )));
+  const getFormatLabel = (fileType: LoadedNovelDocumentFileType) => {
+    if (fileType === 'aozoratext') return m.format_aozora();
+    if (fileType === 'pixivnovel') return m.format_pixiv();
+    return m.format_plain();
+  };
 
   let createDialogOpen = $state(false);
   let createFileType = $state<LoadedNovelDocumentFileType>('aozoratext');
@@ -60,7 +66,7 @@
       const source = createFileType === 'aozoratext'
         ? composeAozoraText({ title, author: createAuthor.trim() || null, body: '' })
         : '';
-      const file = new File([source], createFileType === 'plaintext' ? title : `${title}.txt`, { type: 'text/plain;charset=utf-8' });
+      const file = new File([source], getNovelFileName(createFileType, title), { type: 'text/plain;charset=utf-8' });
       const id = await addLoadedNovelDocumentFromFile(createFileType, file, 'vertical-rl');
       createDialogOpen = false;
       await goto(resolve('/(menu)/novels/[id]', { id }));
@@ -191,6 +197,7 @@
     <NativeSelect.Root aria-label={m.novel_filter_by_format()} bind:value={formatFilter}>
       <NativeSelect.Option value='all'>{m.novel_filter_all_formats()}</NativeSelect.Option>
       <NativeSelect.Option value='aozoratext'>{m.format_aozora()}</NativeSelect.Option>
+      <NativeSelect.Option value='pixivnovel'>{m.format_pixiv()}</NativeSelect.Option>
       <NativeSelect.Option value='plaintext'>{m.format_plain()}</NativeSelect.Option>
     </NativeSelect.Root>
   </div>
@@ -231,7 +238,7 @@
                 mt-1 flex flex-wrap items-center gap-2 text-xs
                 text-muted-foreground
               '>
-              <span>{document.fileType === 'aozoratext' ? m.format_aozora() : m.format_plain()}</span>
+              <span>{getFormatLabel(document.fileType)}</span>
               {#if document.type === 'internal'}<Badge variant='outline'>{m.novel_badge_internal()}</Badge>{/if}
             </div>
           </div>

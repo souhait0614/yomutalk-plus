@@ -1,13 +1,14 @@
 <script lang='ts'>
   import type { NovelDocument } from '@repo/novel-parser';
   import type { LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
-  import { parseAozoraText, parsePlainText } from '@repo/novel-parser';
+  import { parsePlainText } from '@repo/novel-parser';
   import { IconEye, IconPencil } from '@tabler/icons-svelte';
   import NovelDocumentViewer from '$lib/components/NovelDocumentViewer.svelte';
   import { m } from '$lib/paraglide/messages';
   import * as InputGroup from '$lib/shadcn-svelte/components/ui/input-group';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import * as Tabs from '$lib/shadcn-svelte/components/ui/tabs';
+  import { parseNovelDocument } from '$lib/utils/novelParsing';
   import { onMount, tick } from 'svelte';
   import { MediaQuery } from 'svelte/reactivity';
 
@@ -80,9 +81,7 @@
         blocksByLine[sourceLineIndex - lineOffset] = blockIndex;
         blockIndex += 1;
       };
-      previewDocument = nextFileType === 'aozoratext'
-        ? parseAozoraText(nextSource, { onBlock })
-        : parsePlainText(nextSource, { title: nextTitle, author: null, onBlock });
+      previewDocument = parseNovelDocument(nextFileType, nextSource, { title: nextTitle, onBlock });
       previewBlockByLine = blocksByLine;
       previewPending = false;
       scheduleCursorPreview();
@@ -99,7 +98,7 @@
     if (!element || disabled) return;
     let start = element.selectionStart;
     let end = element.selectionEnd;
-    if (start === end && (insertion.kind === 'heading' || insertion.wholeLine)) {
+    if (start === end && (insertion.kind === 'heading' || (insertion.kind === 'text' && insertion.wholeLine))) {
       start = body.lastIndexOf('\n', start - 1) + 1;
       const lineEnd = body.indexOf('\n', end);
       end = lineEnd === -1 ? body.length : lineEnd;
@@ -107,7 +106,24 @@
     let replacement: string;
     let selectionStart: number;
     let selectionEnd: number;
-    if (insertion.kind === 'heading') {
+    if (insertion.kind === 'chapter') {
+      // NOTE: 章タイトルのタグは行頭に単独で置く必要があるため、行の上に新しい行として挿入する
+      const lineStart = body.lastIndexOf('\n', start - 1) + 1;
+      const title = m.editor_chapter();
+      start = lineStart;
+      end = lineStart;
+      replacement = `[chapter:${title}]\n`;
+      selectionStart = lineStart + '[chapter:'.length;
+      selectionEnd = selectionStart + title.length;
+    } else if (insertion.kind === 'pageBreak') {
+      // NOTE: 改ページのタグも行頭に単独で置き、現在の行はそのまま残す
+      const lineStart = body.lastIndexOf('\n', start - 1) + 1;
+      start = lineStart;
+      end = lineStart;
+      replacement = '[newpage]\n';
+      selectionStart = lineStart + replacement.length;
+      selectionEnd = selectionStart;
+    } else if (insertion.kind === 'heading') {
       const content = body.slice(start, end) || m.editor_heading();
       replacement = content.split('\n').map((line) => (line ? `${line}［＃「${line}」は${insertion.level}見出し］` : '')).join('\n');
       selectionStart = start;

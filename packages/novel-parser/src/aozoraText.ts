@@ -73,8 +73,8 @@ import type {
   NovelParserOptions,
   ParagraphBlock,
 } from './types.ts';
-import { applyInlineStyle, mergeInlineStyles, parseAozoraInline } from './aozoraInline.ts';
-import { normalizeSource, splitSentences } from './shared.ts';
+import { applyInlineStyle, parseAozoraInline } from './aozoraInline.ts';
+import { mergeInlineStyles, normalizeSource, splitSentences } from './shared.ts';
 
 const AOZORA_SEPARATOR = /^-{20,}$/u;
 const AOZORA_FOOTER = /^底本(?:の親本)?：/u;

@@ -14,6 +14,7 @@
 ## 対応しているファイル形式
 
 - [青空文庫形式](https://www.aozora.gr.jp/aozora-manual/index-input.html)のtxtファイル
+- [pixiv小説記法](https://www.pixiv.help/hc/ja/articles/235584168)のtxtファイル
 - 通常のtxtファイル
 
 ## 対応している読み上げエンジン

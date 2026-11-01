@@ -37,7 +37,10 @@ export const getNovelInlineStyleAttribute = (style: NovelInlineStyle | undefined
   let fontSize = 1;
 
   if (style.emphasis !== undefined) {
-    declarations.push(`text-emphasis-style: ${EMPHASIS_STYLES[style.emphasis.mark]}`);
+    const emphasisStyle = style.emphasis.character === undefined
+      ? EMPHASIS_STYLES[style.emphasis.mark]
+      : `"${style.emphasis.character.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`;
+    declarations.push(`text-emphasis-style: ${emphasisStyle}`);
     declarations.push(`text-emphasis-position: over ${style.emphasis.side === 'left' ? 'left' : 'right'}`);
   }
 

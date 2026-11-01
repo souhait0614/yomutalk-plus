@@ -1,6 +1,6 @@
 import type { RegisteredText } from '$lib/selectedText';
 
-export type LoadedNovelDocumentFileType = 'plaintext' | 'aozoratext';
+export type LoadedNovelDocumentFileType = 'plaintext' | 'aozoratext' | 'pixivnovel';
 
 export type NovelWritingMode = 'horizontal-tb' | 'vertical-rl' | 'vertical-lr';
 

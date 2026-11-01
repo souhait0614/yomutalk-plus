@@ -88,6 +88,8 @@
                       <Item.Description>{m.library_built_in_novels()}</Item.Description>
                     {:else if loadedNovelDocument.fileType === 'aozoratext'}
                       <Item.Description>{m.file_type_aozora()}</Item.Description>
+                    {:else if loadedNovelDocument.fileType === 'pixivnovel'}
+                      <Item.Description>{m.file_type_pixiv()}</Item.Description>
                     {:else}
                       <Item.Description>{m.file_type_plain()}</Item.Description>
                     {/if}

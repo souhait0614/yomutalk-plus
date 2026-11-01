@@ -15,6 +15,7 @@
     readonly loadedNovelDocuments: LoadedNovelDocument[];
     readonly onClickSelectAozoraTextFileButton: (writingMode: NovelWritingMode) => Promise<boolean>;
     readonly onClickSelectPlainTextFileButton: (writingMode: NovelWritingMode) => Promise<boolean>;
+    readonly onClickSelectPixivNovelFileButton: (writingMode: NovelWritingMode) => Promise<boolean>;
     readonly onClickAddInternalNovelButton: (novel: InternalNovelInfo, writingMode: NovelWritingMode) => Promise<void>;
   }
 
@@ -23,6 +24,7 @@
     loadedNovelDocuments,
     onClickSelectAozoraTextFileButton,
     onClickSelectPlainTextFileButton,
+    onClickSelectPixivNovelFileButton,
     onClickAddInternalNovelButton,
   }: AddLoadedNovelDocumentDialogProps = $props();
 
@@ -105,6 +107,13 @@
             if (await onClickSelectPlainTextFileButton(writingMode)) open = false;
           }}>
           {m.file_type_plain()}
+        </Button>
+        <Button
+          variant='outline'
+          onclick={async () => {
+            if (await onClickSelectPixivNovelFileButton(writingMode)) open = false;
+          }}>
+          {m.file_type_pixiv()}
         </Button>
       </div>
       <Separator class='my-4'/>

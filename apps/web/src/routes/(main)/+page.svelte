@@ -3,7 +3,7 @@
   import type { Bookmark, LoadedNovelDocumentFileType, NovelWritingMode } from '$lib/db';
   import type { InternalNovelInfo } from '$lib/internalNovels';
   import type { ManuallyEnteredText, RegisteredText, SelectedNovelText } from '$lib/selectedText';
-  import { classifySentenceTextType, parseAozoraText, parsePlainText } from '@repo/novel-parser';
+  import { classifySentenceTextType } from '@repo/novel-parser';
   import { createTtsController, isTtsAbortError } from '@repo/tts';
   import { autoStartPlayback, shiftMainByGesture, ttsPreset } from '$lib/appSettings.svelte';
   import NovelDocumentViewer from '$lib/components/NovelDocumentViewer.svelte';
@@ -25,6 +25,7 @@
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { ttsPresetEntries } from '$lib/tts';
   import { FileNotSelectedError, pickSingleFile } from '$lib/utils/misc';
+  import { parseNovelDocument } from '$lib/utils/novelParsing';
   import { decodeTextFile } from '$lib/utils/textEncoding';
   import { extractTextFileFromZip, isZipFile, ZipExtractionError } from '$lib/utils/zip';
   import { stateQuery } from 'dexie-svelte-query';
@@ -79,9 +80,7 @@
     if (!loadedNovelDocument) return undefined;
     const text = await decodeTextFile(loadedNovelDocument.fileData);
     return {
-      document: loadedNovelDocument.fileType === 'aozoratext'
-        ? parseAozoraText(text)
-        : parsePlainText(text, { title: loadedNovelDocument.title, author: null }),
+      document: parseNovelDocument(loadedNovelDocument.fileType, text, { title: loadedNovelDocument.title }),
       documentId: loadedNovelDocument.id,
       documentHash: loadedNovelDocument.hash,
       writingMode: loadedNovelDocument.writingMode,
@@ -114,7 +113,7 @@
   ): Promise<boolean> => {
     try {
       const pickedFile = await pickSingleFile({
-        accept: fileType === 'aozoratext' ? '.txt,.zip' : 'text/plain',
+        accept: fileType === 'aozoratext' ? '.txt,.zip' : fileType === 'pixivnovel' ? '.txt' : 'text/plain',
       });
       const file = fileType === 'aozoratext' && await isZipFile(pickedFile)
         ? await extractTextFileFromZip(pickedFile)
@@ -135,6 +134,10 @@
 
   const handleClickSelectPlainTextFileButton = (writingMode: NovelWritingMode) => (
     handleClickAddNovelFileButton('plaintext', writingMode)
+  );
+
+  const handleClickSelectPixivNovelFileButton = (writingMode: NovelWritingMode) => (
+    handleClickAddNovelFileButton('pixivnovel', writingMode)
   );
 
   const handleClickAddInternalNovelButton = async (novel: InternalNovelInfo, writingMode: NovelWritingMode) => {
@@ -591,6 +594,7 @@
   {loadedNovelDocuments}
   onClickSelectAozoraTextFileButton={handleClickSelectAozoraTextFileButton}
   onClickSelectPlainTextFileButton={handleClickSelectPlainTextFileButton}
+  onClickSelectPixivNovelFileButton={handleClickSelectPixivNovelFileButton}
   onClickAddInternalNovelButton={handleClickAddInternalNovelButton}/>
 <ManageSelectedTextsDialog
   bind:open={isOpenManageSelectedTextsDialog}

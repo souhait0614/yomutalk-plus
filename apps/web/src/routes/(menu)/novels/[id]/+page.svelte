@@ -11,6 +11,7 @@
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { getErrorMessage } from '$lib/utils/misc';
   import { goBackOrHome } from '$lib/utils/navigation';
+  import { getNovelFileName } from '$lib/utils/novelFile';
   import { decodeTextFile } from '$lib/utils/textEncoding';
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -90,7 +91,7 @@
     isSaving = true;
     const savedSnapshot = draft;
     try {
-      const file = new File([source], fileType === 'plaintext' ? title.trim() : `${title.trim()}.txt`, { type: 'text/plain;charset=utf-8' });
+      const file = new File([source], getNovelFileName(fileType, title.trim()), { type: 'text/plain;charset=utf-8' });
       const id = originalDocument.id;
       await updateLoadedNovelDocumentFromFile(id, fileType, file, writingMode, originalDocument.hash);
       originalDocument = await appDatabase.loadedNovelDocuments.get(id);
