@@ -2,11 +2,12 @@
 
 ## Toolchain
 
-- Use the versions pinned in [mise.toml](mise.toml): Node.js 24.21.0 and pnpm 12.9.1.
+- Use the versions pinned in [mise.toml](mise.toml); do not duplicate version numbers in documentation.
 - Run workspace tasks from the repository root. Turbo builds package dependencies (`^build`) before dependent tasks.
 - Use `pnpm lint` for the whole workspace (root + turbo) and `pnpm build` for a production build.
 - `pnpm typecheck` (Turbo) runs every workspace script named `typecheck`, including `apps/web` (`svelte-kit sync` + `svelte-check`).
 - Run parser tests with `pnpm --filter @repo/novel-parser test` (`node --test`); fixtures live in `packages/novel-parser/test/assets/`. The gitignored `dummy-text/` directory at the repository root is local sample data for manual/browser testing only.
+- Run workspace tests with `pnpm test` (Turbo), including parser and TTS controller regression tests.
 - Lefthook runs lint and type checks for staged files per package (the root config covers root-level files; `apps/*` and `packages/*` configs run their own) and commitlint on the commit message. Keep each workspace's `eslint.config.ts`, `tsconfig.json`, and `lefthook.yml` aligned with the shared `@repo/eslint-config` and `@repo/tsconfig` instead of duplicating or bypassing them from the root.
 
 ## Architecture
@@ -30,6 +31,7 @@
 - Vertical writing mode needs physical CSS properties: Tailwind's logical utilities follow the text axis rather than the screen (`px-*` becomes `padding-inline`, i.e. vertical padding). That is why the viewer places blocks with physical offsets and applies `pb-*` only in horizontal mode, while indentation that should follow the text flow uses `margin-inline-start`.
 - Treat `TtsAbortError` as expected control flow for stop/cancel. Detect it with `isTtsAbortError` from `@repo/tts`, which checks both `instanceof` and `Error.name` because dev can load duplicate module instances. Keep prepare, replay-after-stop, and stale-generation handling inside `@repo/tts`, not duplicated in UI components. VOICEVOX credentials stay in `$env/dynamic/private` and never inside `@repo/tts`.
 - Mutate reactive collections through `SvelteMap` methods (`set`, `delete`) rather than replacing or spreading them, and keep `SvelteMap` out of `PersistedState`.
+- Keep QR upload-cache keys synchronized with document order and IDs, content hashes, and the metadata encoded by [sharedNovels.ts](apps/web/src/lib/sharedNovels.ts). Cache results under the key captured at preparation start, not the latest reactive key.
 
 ## Localization
 
@@ -43,9 +45,9 @@
 - Run the narrowest package command first, then broaden for shared changes.
 - Web UI: `pnpm --filter web typecheck` and `pnpm --filter web lint`.
 - Novel parser: `pnpm --filter @repo/novel-parser test`, `pnpm --filter @repo/novel-parser typecheck`, and its lint task.
-- TTS package: `pnpm --filter @repo/tts typecheck` and its lint task. It has no build step; consumers import `src/index.ts` directly.
+- TTS package: `pnpm --filter @repo/tts test`, `pnpm --filter @repo/tts typecheck`, and its lint task. It has no build step; consumers import `src/index.ts` directly.
 - API package: `pnpm --filter @repo/api typecheck` and its lint task.
-- Run `pnpm lint`, `pnpm typecheck`, and `pnpm build` for cross-workspace changes. `.github/workflows/lint.yaml` runs `pnpm typecheck` and `pnpm lint` on `main` pushes and pull requests, passing `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` from repository variables; locally that variable comes from `apps/web/.env` (see `apps/web/.env.example`). It is a `$env/static/public` variable, so type checking and building `apps/web` fail while it is unset. Its `pull_request_target` jobs are limited to same-repository head branches (`github.event.pull_request.head.repo.full_name == github.repository`) because the workflow checks out and executes the PR's code; keep that guard when you touch the trigger or the checkout.
+- Run `pnpm test`, `pnpm lint`, `pnpm typecheck`, and `pnpm build` for cross-workspace changes. `.github/workflows/lint.yaml` runs `pnpm test`, `pnpm typecheck`, and `pnpm lint` in parallel matrix jobs on `main` pushes and pull requests, with a separate Turbo cache key per task. The required `Lint` check aggregates all three results; keep it failing if any matrix job fails, is cancelled, or is skipped. It passes `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` from repository variables; locally that variable comes from `apps/web/.env` (see `apps/web/.env.example`). It is a `$env/static/public` variable, so type checking and building `apps/web` fail while it is unset. Its `pull_request_target` jobs are limited to same-repository head branches (`github.event.pull_request.head.repo.full_name == github.repository`) because the workflow checks out and executes the PR's code; keep that guard when you touch the trigger or the checkout.
 - Browser behavior involving dialogs, selection, scrolling, IndexedDB, PWA/offline, or speech still needs an interactive check because static commands do not cover it.
 
 ## Release
@@ -65,7 +67,7 @@ Releases are managed by Release Please (`.github/workflows/release-please.yaml`,
 - The web app targets Cloudflare Workers via `@sveltejs/adapter-cloudflare`; runtime config is `apps/web/wrangler.jsonc` (`nodejs_als` plus `global_fetch_strictly_public`). The latter routes global `fetch()` as if the request came from the public Internet (looping back through Cloudflare's front door) instead of sending it to the zone origin or an internal Worker, which is what lets the app call another Worker on the same account instead of failing with 404 or error 1042.
 - Build first (`pnpm --filter web build`), then run wrangler from `apps/web` (`pnpm --filter web exec wrangler deploy --dry-run` to validate, `... wrangler deploy` to publish). Wrangler must run after a build with the app directory as cwd.
 - `.github/workflows/deploy-web.yaml` publishes that build when Release Please creates a `web-v*` tag; `workflow_dispatch` deploys the selected ref (any branch or tag, overridable with the `ref` input) so a previous release can be redeployed and `main` can be smoke-tested. It resolves the ref through `pre-checkout.yaml` like the other workflows, builds with `pnpm run build` (Turbo, so `^build` runs first), and deploys through `cloudflare/wrangler-action` with `workingDirectory: apps/web`; leave `wranglerVersion` unset so the action reuses the `wrangler` that `pnpm install` put in `apps/web`. The Worker version message is the tag name, or `<branch>@<short sha>` for a branch. It needs the `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` secrets and the `PUBLIC_BASE_URL` / `PUBLIC_VOICEVOX_ENGINE_API_ENABLED` variables, because both `$env/static/public` values are inlined at build time.
-- Do not name a script `deploy`: `pnpm deploy` is a pnpm built-in command, so `pnpm --filter web deploy` never reaches a script with that name and fails with `ERR_PNPM_INVALID_DEPLOY_TARGET` when no target directory is given. `apps/web` currently has neither a `deploy` nor a `preview:workers` script, so the root `deploy:web` and `preview:workers:web` helpers fail as well; invoke wrangler directly.
+- Do not name a script `deploy`: `pnpm deploy` is a pnpm built-in command, so `pnpm --filter web deploy` never reaches a script with that name. After building, the root `pnpm deploy:web` and `pnpm preview:workers:web` helpers invoke wrangler directly from `apps/web`.
 
 ## Generated Files
 

@@ -59,12 +59,15 @@ VOICEVOX_ENGINE_API_BEARER_TOKEN=...
 | `pnpm build`                            | 本番ビルド（Turbo 経由）        |
 | `pnpm lint` / `pnpm lint:fix`           | ワークスペース全体の ESLint     |
 | `pnpm typecheck`                        | ワークスペース全体の型チェック  |
+| `pnpm test`                             | ワークスペース全体のテスト      |
 | `pnpm --filter @repo/novel-parser test` | パーサーのテスト（node --test） |
+| `pnpm --filter @repo/tts test`          | TTS 制御のテスト（node --test） |
 
 ## ビルドとデプロイ
 
 Cloudflare Workers にデプロイします。GitHub Actions で自動的にデプロイされます。
 手元で行う場合は `pnpm --filter web build` でビルドしてから、`apps/web` を作業ディレクトリとして `pnpm exec wrangler deploy` を実行します。
+リポジトリ直下からは `pnpm deploy:web` でもデプロイできます。公開せずに確認する場合は `pnpm deploy:web --dry-run`、ビルド済みの Worker をローカルで起動する場合は `pnpm preview:workers:web` を使います。どちらも先にビルドが必要です。
 
 ## ライセンス
 
