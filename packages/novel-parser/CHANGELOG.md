@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/souhait0614/yomutalk-plus/compare/novel-parser-v1.0.2...novel-parser-v1.1.0) (2026-11-01)
+
+
+### Features
+
+* **novel-parser:** pixiv小説記法に対応する ([#51](https://github.com/souhait0614/yomutalk-plus/issues/51)) ([5345a68](https://github.com/souhait0614/yomutalk-plus/commit/5345a68953496f9c19b5e9ee98229b1c93bf8204))
+* **novel-parser:** 青空文庫注記の対応を広げる ([#48](https://github.com/souhait0614/yomutalk-plus/issues/48)) ([ea84df2](https://github.com/souhait0614/yomutalk-plus/commit/ea84df222e5eaa5313738723a756375d5194fe73))
+
 ## [1.0.2](https://github.com/souhait0614/yomutalk-plus/compare/novel-parser-v1.0.1...novel-parser-v1.0.2) (2026-10-30)
 
 
