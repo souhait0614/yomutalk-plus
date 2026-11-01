@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/souhait0614/yomutalk-plus/compare/tts-v1.2.0...tts-v1.2.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* 小説処理・読み上げとCI実行を改善する ([#54](https://github.com/souhait0614/yomutalk-plus/issues/54)) ([4d1fa66](https://github.com/souhait0614/yomutalk-plus/commit/4d1fa661962a4ad2696e5565ce79d08e184b359d))
+
 ## [1.2.0](https://github.com/souhait0614/yomutalk-plus/compare/tts-v1.1.1...tts-v1.2.0) (2026-10-30)
 
 
