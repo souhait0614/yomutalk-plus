@@ -294,6 +294,7 @@
   "tts_manual_input_description": "入力した文字を読み上げに登録します",
   "tts_no_texts": "読み上げる文章はありません。",
   "tts_play": "再生",
+  "tts_play_failed": "読み上げに失敗しました",
   "tts_reading": "読み方 (省略可)",
   "tts_register": "登録",
   "tts_settings": "設定",

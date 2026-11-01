@@ -403,6 +403,11 @@
     isPlaying = true;
     try {
       await playSelectedTexts(runId);
+    } catch (error) {
+      if (!isTtsAbortError(error)) {
+        toast.error(m.tts_play_failed());
+        console.error('Failed to play the selected texts:', error);
+      }
     } finally {
       if (runId === playbackRunId) isPlaying = false;
     }
@@ -508,6 +513,9 @@
 
   onCleanup(() => {
     debouncedHandleSelectionChange.cancel();
+    playbackRunId += 1;
+    ttsInstance.stop();
+    handleClickDeleteAllButton();
     flushScrollValues();
   });
 
