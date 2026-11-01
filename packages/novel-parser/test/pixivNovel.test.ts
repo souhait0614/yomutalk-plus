@@ -145,16 +145,23 @@ test('keeps the whole jumpuri content when there is no angle bracket', () => {
   ]);
 });
 
-test('drops newpage lines and inline newpage tags', () => {
+test('drops newpage lines', () => {
   assert.deepEqual(parseBlocks('  [newpage]  '), []);
+});
+
+test('drops inline newpage tags', () => {
   assert.deepEqual(parseInlines('前[newpage]後'), [{ type: 'text', value: '前後' }]);
   assert.deepEqual(parseInlines('[newpage]本文'), [{ type: 'text', value: '本文' }]);
 });
 
-test('drops illustration and page-link tags', () => {
-  assert.deepEqual(parseInlines('a[pixivimage:1]b[uploadedimage:2]c[jump:3]d'), [
-    { type: 'text', value: 'abcd' },
+test('drops illustration tags', () => {
+  assert.deepEqual(parseInlines('a[pixivimage:1]b[uploadedimage:2]c'), [
+    { type: 'text', value: 'abc' },
   ]);
+});
+
+test('drops page-link tags', () => {
+  assert.deepEqual(parseInlines('a[jump:3]b'), [{ type: 'text', value: 'ab' }]);
 });
 
 test('keeps unknown tags literal', () => {

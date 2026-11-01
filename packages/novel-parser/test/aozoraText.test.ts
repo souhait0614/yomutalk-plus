@@ -107,48 +107,6 @@ test('rejects empty or multiline Aozora metadata', () => {
   assert.throws(() => composeAozoraText({ title: '題名', author: '著者\n本文', body: '' }));
 });
 
-test('converts Aozora headings, ruby, and gaiji', () => {
-  const novel = parseAozoraText([
-    '配布用タイトル',
-    '配布用著者',
-    '',
-    '--------------------',
-    '【テキスト中に現れる記号について】',
-    '--------------------',
-    '［＃８字下げ］一［＃「一」は中見出し］',
-    '',
-    '　吾輩《わがはい》は一番｜獰悪《どうあく》で、※［＃「言＋墟のつくり」］《いつ》わる。',
-    '',
-    '底本：「底本」',
-    '入力：入力者',
-  ].join('\n'));
-
-  assert.equal(novel.title, '配布用タイトル');
-  assert.equal(novel.author, '配布用著者');
-  assert.deepEqual(novel.blocks[0], {
-    type: 'heading',
-    level: 2,
-    indent: 8,
-    sentences: [{ textType: 'heading', inlines: [{ type: 'text', value: '一' }] }],
-  });
-  assert.deepEqual(novel.blocks[1], { type: 'blank' });
-  const paragraph = novel.blocks[2];
-  assert.ok(paragraph?.type === 'paragraph');
-  assert.deepEqual(paragraph.sentences.map((sentence) => sentence.inlines), [
-    [{ type: 'space', value: '　' }],
-    [
-      { type: 'ruby', base: '吾輩', reading: 'わがはい' },
-      { type: 'text', value: 'は一番' },
-      { type: 'ruby', base: '獰悪', reading: 'どうあく' },
-      { type: 'text', value: 'で、' },
-    ],
-    [
-      { type: 'gaiji', description: '「言＋墟のつくり」', reading: 'いつ' },
-      { type: 'text', value: 'わる。' },
-    ],
-  ]);
-});
-
 test('keeps Aozora blank lines and drops blanks around metadata', () => {
   const source = [
     '題名',
@@ -192,78 +150,48 @@ test('reports Aozora block source lines excluding headers, annotations, and foot
   assert.deepEqual(unheadedLines, [2]);
 });
 
-test('converts Aozora indentation ranges and end alignment', () => {
+test('applies single-line 字下げ to a heading', () => {
+  assert.deepEqual(parseAozoraBlocks('［＃８字下げ］見出し［＃「見出し」は中見出し］'), [
+    {
+      type: 'heading',
+      level: 2,
+      indent: 8,
+      sentences: [{ textType: 'heading', inlines: [{ type: 'text', value: '見出し' }] }],
+    },
+  ]);
+});
+
+test('applies 字下げ ranges until the end annotation', () => {
   const blocks = parseAozoraBlocks([
-    '［＃８字下げ］見出し［＃「見出し」は中見出し］',
     '［＃ここから３字下げ］',
     '引用文',
     '［＃ここから４字下げ］',
     '引用文２',
     '［＃ここで字下げ終わり］',
-    '署名［＃地付き］',
   ].join('\n'));
 
-  assert.equal(blocks.length, 4);
-  assert.equal(blocks[0]?.type, 'heading');
-  const block1 = blocks[1];
-  assert.ok(block1?.type === 'paragraph');
-  assert.equal(block1.indent, 3);
-  const block2 = blocks[2];
-  assert.ok(block2?.type === 'paragraph');
-  assert.equal(block2.indent, 4);
-  const block3 = blocks[3];
-  assert.ok(block3?.type === 'paragraph');
-  assert.equal(block3.align, 'end');
+  assert.equal(blocks[0]?.type === 'paragraph' ? blocks[0].indent : undefined, 3);
+  assert.equal(blocks[1]?.type === 'paragraph' ? blocks[1].indent : undefined, 4);
 });
 
-test('converts Aozora layout annotations', () => {
-  const blocks = parseAozoraBlocks([
-    '［＃ページの左右中央］',
-    '章の名前',
-    '［＃改ページ］',
-    '［＃ここから１０字詰め］',
-    '字詰めの段落',
-    '［＃ここで字詰め終わり］',
-    '［＃ここから横組み］',
-    '横組みの段落',
-    '［＃ここで横組み終わり］',
-    '［＃ここから改行天付き、折り返して１字下げ］',
-    '箇条書きの段落',
-    '［＃ここで字下げ終わり］',
-    '［＃地から２字上げ］長谷川辰之助',
-  ].join('\n'));
-
-  assert.deepEqual(blocks.map((block) => block.type), [
-    'paragraph', 'paragraph', 'paragraph', 'paragraph', 'paragraph',
+test('aligns a line to the bottom with 地付き', () => {
+  assert.deepEqual(parseAozoraBlocks('署名［＃地付き］'), [
+    {
+      type: 'paragraph',
+      align: 'end',
+      sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '署名' }] }],
+    },
   ]);
-  assert.deepEqual(blocks[0], {
-    type: 'paragraph',
-    align: 'center',
-    sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '章の名前' }] }],
-  });
-  assert.equal(blocks[1]?.type === 'paragraph' ? blocks[1].width : undefined, 10);
-  assert.equal(blocks[2]?.type === 'paragraph' ? blocks[2].horizontal : undefined, true);
-  assert.equal(blocks[3]?.type === 'paragraph' ? blocks[3].wrapIndent : undefined, 1);
+});
 
-  const nested = parseAozoraBlocks([
-    '［＃ここから２字下げ］',
-    '引用',
-    '［＃ここから改行天付き、折り返して１字下げ］',
-    '箇条書き',
-    '［＃ここで字下げ終わり］',
-  ].join('\n'));
-  const nestedParagraph = nested[1];
-  assert.ok(nestedParagraph?.type === 'paragraph');
-  assert.equal(nestedParagraph.indent, 2);
-  assert.equal(nestedParagraph.wrapIndent, 3);
-
-  const rise = parseAozoraBlocks('［＃地から２字上げ］長谷川辰之助')[0];
-  assert.deepEqual(rise, {
-    type: 'paragraph',
-    align: 'end',
-    rise: 2,
-    sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '長谷川辰之助' }] }],
-  });
+test('centers lines with ページの左右中央', () => {
+  assert.deepEqual(parseAozoraBlocks('［＃ページの左右中央］\n章の名前'), [
+    {
+      type: 'paragraph',
+      align: 'center',
+      sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '章の名前' }] }],
+    },
+  ]);
 });
 
 test('resets center alignment at page breaks and skips the page-break lines', () => {
@@ -279,32 +207,110 @@ test('resets center alignment at page breaks and skips the page-break lines', ()
   assert.equal(blocks[1]?.type === 'paragraph' ? blocks[1].align : undefined, undefined);
 });
 
-test('converts caption annotations', () => {
+test('applies 字詰め to the range', () => {
   const blocks = parseAozoraBlocks([
-    '大獅子金剛大ラマの水刑［＃「大獅子金剛大ラマの水刑」はキャプション］',
+    '［＃ここから１０字詰め］',
+    '字詰めの段落',
+    '［＃ここで字詰め終わり］',
+  ].join('\n'));
+
+  assert.equal(blocks[0]?.type === 'paragraph' ? blocks[0].width : undefined, 10);
+});
+
+test('applies block horizontal writing', () => {
+  const blocks = parseAozoraBlocks([
+    '［＃ここから横組み］',
+    '横組みの段落',
+    '［＃ここで横組み終わり］',
+  ].join('\n'));
+
+  assert.equal(blocks[0]?.type === 'paragraph' ? blocks[0].horizontal : undefined, true);
+});
+
+test('applies 改行天付き、折り返してN字下げ', () => {
+  const blocks = parseAozoraBlocks([
+    '［＃ここから２字下げ］',
+    '引用',
+    '［＃ここから改行天付き、折り返して１字下げ］',
+    '箇条書き',
+    '［＃ここで字下げ終わり］',
+  ].join('\n'));
+
+  const paragraph = blocks[1];
+  assert.ok(paragraph?.type === 'paragraph');
+  assert.equal(paragraph.indent, 2);
+  assert.equal(paragraph.wrapIndent, 3);
+});
+
+test('raises a line with 地からN字上げ', () => {
+  assert.deepEqual(parseAozoraBlocks('［＃地から２字上げ］長谷川辰之助'), [
+    {
+      type: 'paragraph',
+      align: 'end',
+      rise: 2,
+      sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '長谷川辰之助' }] }],
+    },
+  ]);
+});
+
+test('combines layout annotations in one document', () => {
+  const blocks = parseAozoraBlocks([
+    '［＃ページの左右中央］',
+    '章の名前',
+    '［＃改ページ］',
+    '［＃ここから１０字詰め］',
+    '字詰めの段落',
+    '［＃ここで字詰め終わり］',
+    '［＃ここから横組み］',
+    '横組みの段落',
+    '［＃ここで横組み終わり］',
+    '［＃ここから改行天付き、折り返して１字下げ］',
+    '箇条書きの段落',
+    '［＃ここで字下げ終わり］',
+  ].join('\n'));
+
+  assert.deepEqual(blocks.map((block) => block.type), [
+    'paragraph', 'paragraph', 'paragraph', 'paragraph',
+  ]);
+  assert.equal(blocks[0]?.type === 'paragraph' ? blocks[0].align : undefined, 'center');
+  assert.equal(blocks[1]?.type === 'paragraph' ? blocks[1].width : undefined, 10);
+  assert.equal(blocks[2]?.type === 'paragraph' ? blocks[2].horizontal : undefined, true);
+  assert.equal(blocks[3]?.type === 'paragraph' ? blocks[3].wrapIndent : undefined, 1);
+});
+
+test('applies targeted caption annotations', () => {
+  const blocks = parseAozoraBlocks('大獅子金剛大ラマの水刑［＃「大獅子金剛大ラマの水刑」はキャプション］');
+  assert.equal(blocks[0]?.type === 'paragraph' ? blocks[0].caption : undefined, true);
+});
+
+test('applies caption blocks', () => {
+  const blocks = parseAozoraBlocks([
     '［＃ここからキャプション］',
     '第３図『雪華図説』図版第十面',
     '［＃ここでキャプション終わり］',
   ].join('\n'));
 
-  assert.deepEqual(blocks.map((block) => block.type === 'paragraph' && block.caption), [true, true]);
+  assert.deepEqual(blocks.map((block) => (block.type === 'paragraph' ? block.caption : undefined)), [true]);
 });
 
-test('converts block and inline heading annotations', () => {
+test('applies block heading annotations', () => {
   const blocks = parseAozoraBlocks([
     '［＃ここから中見出し］',
     '章の見出し',
     '［＃ここで中見出し終わり］',
+  ].join('\n'));
+
+  assert.equal(blocks[0]?.type === 'heading' ? blocks[0].level : undefined, 2);
+  assert.equal(blocks[0]?.type === 'heading' ? blocks[0].sentences[0]?.textType : undefined, 'heading');
+});
+
+test('applies inline heading annotations', () => {
+  const blocks = parseAozoraBlocks([
     '［＃大見出し］序［＃大見出し終わり］',
     '清水詣《きよみずもう》で［＃「清水詣で」は大見出し］',
   ].join('\n'));
 
-  assert.deepEqual(blocks.map((block) => block.type), ['heading', 'heading', 'heading']);
-  assert.deepEqual(blocks.map((block) => block.type === 'heading' && block.level), [2, 1, 1]);
-  assert.equal(
-    blocks[0]?.type === 'heading' ? blocks[0].sentences[0]?.textType : undefined,
-    'heading',
-  );
+  assert.deepEqual(blocks.map((block) => (block.type === 'heading' ? block.level : block.type)), [1, 1]);
 });
 
 test('converts every heading level', () => {
@@ -330,15 +336,12 @@ test('marks heading sentences as heading text type', () => {
   assert.equal(heading.sentences[0]?.textType, 'heading');
 });
 
-test('applies block-wide bold and skips annotation-only lines', () => {
-  const blocks = parseAozoraBlocks([
+test('applies block-wide bold', () => {
+  assert.deepEqual(parseAozoraBlocks([
     '［＃ここから太字］',
     '太字の段落',
     '［＃ここで太字終わり］',
-    '［＃石鏃二つの図（fig42154_01.png、横321×縦123）入る］',
-  ].join('\n'));
-
-  assert.deepEqual(blocks, [
+  ].join('\n')), [
     {
       type: 'paragraph',
       sentences: [
@@ -346,6 +349,13 @@ test('applies block-wide bold and skips annotation-only lines', () => {
       ],
     },
   ]);
+});
+
+test('skips annotation-only lines', () => {
+  assert.deepEqual(
+    parseAozoraBlocks('［＃石鏃二つの図（fig42154_01.png、横321×縦123）入る］'),
+    [],
+  );
 });
 
 test('ignores block-wide kekomi annotations', () => {
@@ -381,12 +391,53 @@ test('stops the body at the Aozora body end annotation', () => {
 });
 
 test('drops footer lines from the body', () => {
-  const blocks = parseAozoraBlocks('本文です。\n底本：底本情報\n入力：入力者');
-  assert.deepEqual(blocks, [
+  assert.deepEqual(parseAozoraBlocks('本文です。\n底本：底本情報\n入力：入力者'), [
     {
       type: 'paragraph',
       sentences: [{ textType: 'narration', inlines: [{ type: 'text', value: '本文です。' }] }],
     },
+  ]);
+});
+
+test('combines headings, ruby, and gaiji in one document', () => {
+  const novel = parseAozoraText([
+    '配布用タイトル',
+    '配布用著者',
+    '',
+    '--------------------',
+    '【テキスト中に現れる記号について】',
+    '--------------------',
+    '［＃８字下げ］一［＃「一」は中見出し］',
+    '',
+    '　吾輩《わがはい》は一番｜獰悪《どうあく》で、※［＃「言＋墟のつくり」］《いつ》わる。',
+    '',
+    '底本：「底本」',
+    '入力：入力者',
+  ].join('\n'));
+
+  assert.equal(novel.title, '配布用タイトル');
+  assert.equal(novel.author, '配布用著者');
+  assert.deepEqual(novel.blocks[0], {
+    type: 'heading',
+    level: 2,
+    indent: 8,
+    sentences: [{ textType: 'heading', inlines: [{ type: 'text', value: '一' }] }],
+  });
+  assert.deepEqual(novel.blocks[1], { type: 'blank' });
+  const paragraph = novel.blocks[2];
+  assert.ok(paragraph?.type === 'paragraph');
+  assert.deepEqual(paragraph.sentences.map((sentence) => sentence.inlines), [
+    [{ type: 'space', value: '　' }],
+    [
+      { type: 'ruby', base: '吾輩', reading: 'わがはい' },
+      { type: 'text', value: 'は一番' },
+      { type: 'ruby', base: '獰悪', reading: 'どうあく' },
+      { type: 'text', value: 'で、' },
+    ],
+    [
+      { type: 'gaiji', description: '「言＋墟のつくり」', reading: 'いつ' },
+      { type: 'text', value: 'わる。' },
+    ],
   ]);
 });
 

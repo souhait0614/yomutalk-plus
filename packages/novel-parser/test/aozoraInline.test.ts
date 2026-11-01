@@ -24,17 +24,11 @@ const parseParagraphSentences = (body: string): NovelSentence[] => {
 const getParagraphInlines = (body: string): NovelInline[] => parseParagraphSentences(body)
   .flatMap((sentence) => sentence.inlines);
 
-test('applies emphasis dots and lines from forward annotations', () => {
-  const inlines = getParagraphInlines(
-    '腹がへっても［＃「腹がへっても」に傍点］、この形は傍線［＃「傍線」に傍線］です。',
-  );
-
-  assert.deepEqual(inlines, [
+test('applies emphasis dots from forward annotations', () => {
+  assert.deepEqual(getParagraphInlines('腹がへっても［＃「腹がへっても」に傍点］、次へ。'), [
     { type: 'text', value: '腹がへっても', style: { emphasis: { mark: 'sesame-dot', side: 'right' } } },
     { type: 'text', value: '、' },
-    { type: 'text', value: 'この形は' },
-    { type: 'text', value: '傍線', style: { line: { mark: 'solid', side: 'right' } } },
-    { type: 'text', value: 'です。' },
+    { type: 'text', value: '次へ。' },
   ]);
 
   const leftDots = getParagraphInlines('責［＃「責」の左に白丸傍点］空文庫');
@@ -43,6 +37,14 @@ test('applies emphasis dots and lines from forward annotations', () => {
     value: '責',
     style: { emphasis: { mark: 'white-circle', side: 'left' } },
   });
+});
+
+test('applies line marks from forward annotations', () => {
+  assert.deepEqual(getParagraphInlines('この形は傍線［＃「傍線」に傍線］です。'), [
+    { type: 'text', value: 'この形は' },
+    { type: 'text', value: '傍線', style: { line: { mark: 'solid', side: 'right' } } },
+    { type: 'text', value: 'です。' },
+  ]);
 });
 
 const emphasisMarks: readonly (readonly [string, EmphasisMark])[] = [
