@@ -33,8 +33,13 @@ export const createTtsController = (preset: TtsPreset): TtsInstance => {
           }
           const playback = { preparedInstance };
           activePlayback = playback;
+          const currentGeneration = generation;
+          const currentDelegatePromise = delegatePromise;
+          const currentReadyPromise = readyPromise;
           try {
-            const instance = await delegatePromise;
+            await currentReadyPromise;
+            const instance = await currentDelegatePromise;
+            if (currentGeneration !== generation) throw new TtsAbortError();
             await instance.speak();
           } finally {
             if (activePlayback === playback) activePlayback = undefined;

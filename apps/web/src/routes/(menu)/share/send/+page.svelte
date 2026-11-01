@@ -20,13 +20,20 @@
   );
 
   const selectedIds = new SvelteMap<string, boolean>();
-  const selectedCount = $derived([...selectedIds.values()].filter((selected) => selected).length);
   const selectedDocuments = $derived(
     filteredLoadedNovelDocuments.filter(({ id }) => selectedIds.get(id) === true),
   );
-  const selectedShareKey = $derived(selectedDocuments.map(({ id }) => id).sort().join());
+  const selectedCount = $derived(selectedDocuments.length);
+  const selectedShareKey = $derived(JSON.stringify(selectedDocuments.map((document) => [
+    document.id,
+    document.hash,
+    document.fileType,
+    document.title,
+    document.writingMode,
+    document.type === 'file' && (document.isEditLocked ?? false),
+  ])));
 
-  // 一度アップロードした組み合わせは、同じ共有 ID で QR コードを表示できる
+  // 共有する本文・設定・並び順が同じ場合だけ、アップロード済みの共有 ID を使い回す
   const uploadedSharedNovelsIds = new SvelteMap<string, string>();
 
   let selectMethodDialogOpen = $state(false);
@@ -84,7 +91,8 @@
 <ShareNovelQrDialog
   bind:open={qrDialogOpen}
   documents={selectedDocuments}
+  documentsKey={selectedShareKey}
   uploadedSharedNovelsId={uploadedSharedNovelsIds.get(selectedShareKey)}
-  onUploadSharedNovels={(id) => uploadedSharedNovelsIds.set(selectedShareKey, id)}
+  onUploadSharedNovels={(key, id) => uploadedSharedNovelsIds.set(key, id)}
   onSelectFile={() => handleSelectShareMethod('file')}/>
 <ShareNovelFileDialog bind:open={fileDialogOpen} documents={selectedDocuments}/>

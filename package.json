@@ -10,8 +10,8 @@
   "type": "module",
   "scripts": {
     "build": "turbo run build",
-    "deploy:web": "pnpm --filter web deploy",
-    "preview:workers:web": "pnpm --filter web preview:workers",
+    "deploy:web": "pnpm --filter web exec wrangler deploy",
+    "preview:workers:web": "pnpm --filter web exec wrangler dev",
     "dev": "turbo run dev",
     "lint": "concurrently --names 'root,repo' 'node:lint:root' 'node:lint:repo'",
     "lint:fix": "concurrently --names 'root,repo' 'node:lint:fix:root' 'node:lint:fix:repo'",
@@ -19,6 +19,7 @@
     "lint:fix:root": "eslint . --fix --no-config-lookup --config eslint.config.ts",
     "lint:repo": "turbo run lint",
     "lint:root": "eslint . --no-config-lookup --config eslint.config.ts",
+    "test": "turbo run test",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {

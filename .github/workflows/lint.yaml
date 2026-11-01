@@ -22,13 +22,23 @@ jobs:
     if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
     uses: ./.github/workflows/pre-checkout.yaml
 
-  lint:
-    name: Lint
+  checks:
+    name: Run ${{ matrix.name }}
     if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 10
     needs:
       - pre-checkout
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Test
+            script: test
+          - name: Type Check
+            script: typecheck
+          - name: Lint
+            script: lint
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -41,8 +51,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ needs.pre-checkout.outputs.sha }}
+          key: ${{ runner.os }}-turbo-${{ matrix.script }}-${{ needs.pre-checkout.outputs.sha }}
           restore-keys: |
+            ${{ runner.os }}-turbo-${{ matrix.script }}-
             ${{ runner.os }}-turbo-
 
       - name: Setup tools
@@ -52,16 +63,26 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
 
-      - name: Type Check
+      - name: ${{ matrix.name }}
         run: |
-          pnpm run typecheck
+          pnpm run ${{ matrix.script }}
         env:
           PUBLIC_BASE_URL: https://example.com
           PUBLIC_VOICEVOX_ENGINE_API_ENABLED: ${{ vars.PUBLIC_VOICEVOX_ENGINE_API_ENABLED }}
 
-      - name: Lint
-        run: |
-          pnpm run lint
+  lint:
+    name: Lint
+    if: always() && (github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 1
+    needs:
+      - checks
+    steps:
+      - name: Check results
         env:
-          PUBLIC_BASE_URL: https://example.com
-          PUBLIC_VOICEVOX_ENGINE_API_ENABLED: ${{ vars.PUBLIC_VOICEVOX_ENGINE_API_ENABLED }}
+          result: ${{ needs.checks.result }}
+        run: |
+          if [[ "$result" != "success" ]]; then
+            echo "::error::Test, Type Check or Lint did not succeed (${result})"
+            exit 1
+          fi

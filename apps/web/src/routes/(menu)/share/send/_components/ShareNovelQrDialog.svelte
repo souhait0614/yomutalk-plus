@@ -12,9 +12,10 @@
   interface ShareNovelQrDialogProps {
     open: boolean;
     readonly documents: LoadedNovelDocument[];
-    /** 同じ組み合わせの小説をアップロード済みなら、その共有 ID */
+    readonly documentsKey: string;
+    /** 同じ内容の小説をアップロード済みなら、その共有 ID */
     readonly uploadedSharedNovelsId: string | undefined;
-    readonly onUploadSharedNovels: (id: string) => void;
+    readonly onUploadSharedNovels: (key: string, id: string) => void;
     /** アップロードできないときに小説ファイルでの送信へ切り替える */
     readonly onSelectFile: () => void;
   }
@@ -24,6 +25,7 @@
   let {
     open = $bindable(),
     documents,
+    documentsKey,
     uploadedSharedNovelsId,
     onUploadSharedNovels,
     onSelectFile,
@@ -35,21 +37,21 @@
   // 閉じる前に始めたアップロードの結果を捨てるための識別子
   let preparationToken = 0;
 
-  const prepare = async () => {
+  const prepare = async (key = documentsKey) => {
+    const token = ++preparationToken;
     if (uploadedSharedNovelsId) {
       sharedNovelsId = uploadedSharedNovelsId;
       status = 'ready';
       return;
     }
 
-    const token = ++preparationToken;
     status = 'preparing';
     errorMessage = '';
     try {
       const uploadedId = await uploadSharedNovels(await encodeSharedNovels(documents));
       if (token !== preparationToken) return;
       sharedNovelsId = uploadedId;
-      onUploadSharedNovels(uploadedId);
+      onUploadSharedNovels(key, uploadedId);
       status = 'ready';
     } catch (error) {
       if (token !== preparationToken) return;
@@ -58,6 +60,7 @@
       console.error('Failed to upload shared novels:', error);
     }
   };
+
 </script>
 
 <Dialog.Root

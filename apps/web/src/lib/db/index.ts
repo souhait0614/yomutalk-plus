@@ -1,5 +1,5 @@
 import type { RegisteredText } from '$lib/selectedText';
-import { parseAozoraText } from '@repo/novel-parser';
+import { splitAozoraText } from '@repo/novel-parser';
 import { m } from '$lib/paraglide/messages';
 import { copyRegisteredText } from '$lib/selectedText';
 import { computeContentHash } from '$lib/utils/hash';
@@ -61,12 +61,11 @@ const addBookmarkFolder = async (name: string): Promise<string> => {
   if (!normalizedName) throw new Error('Bookmark folder name is required');
 
   return appDatabase.transaction('rw', appDatabase.bookmarkFolders, async () => {
-    const folders = await appDatabase.bookmarkFolders.toArray();
-    const lastSortOrder = folders.reduce((max, { sortOrder }) => Math.max(max, sortOrder), -1);
+    const lastFolder = await appDatabase.bookmarkFolders.orderBy('sortOrder').last();
     return appDatabase.bookmarkFolders.add({
       id: uuidv7(),
       name: normalizedName,
-      sortOrder: lastSortOrder + 1,
+      sortOrder: (lastFolder?.sortOrder ?? -1) + 1,
     });
   });
 };
@@ -109,8 +108,7 @@ const getLoadedNovelDocumentFileTitle = (
       return fileName;
     }
     case 'aozoratext': {
-      const novelDocument = parseAozoraText(decodeTextContent(content));
-      return novelDocument.title || fileName;
+      return splitAozoraText(decodeTextContent(content)).title || fileName;
     }
     default: {
       throw new Error(`Unsupported file type: ${fileType}`);
@@ -229,12 +227,12 @@ const deleteLoadedNovelDocument = async (id: string): Promise<void> => {
 
 const moveLoadedNovelDocument = async (id: string, direction: 'up' | 'down'): Promise<void> => {
   await appDatabase.transaction('rw', appDatabase.loadedNovelDocuments, async () => {
-    const documents = await getLoadedNovelDocuments();
-    const currentIndex = documents.findIndex((document) => document.id === id);
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    const current = documents[currentIndex];
-    const target = documents[targetIndex];
-    if (!current || !target) return;
+    const current = await appDatabase.loadedNovelDocuments.get(id);
+    if (!current) throw new Error('Novel document not found');
+    const target = direction === 'up'
+      ? await appDatabase.loadedNovelDocuments.where('sortOrder').below(current.sortOrder).last()
+      : await appDatabase.loadedNovelDocuments.where('sortOrder').above(current.sortOrder).first();
+    if (!target) return;
 
     // NOTE: 並び順は sortOrder の相対関係だけで決まるため、入れ替える2件だけを書き換える
     await appDatabase.loadedNovelDocuments.bulkPut([

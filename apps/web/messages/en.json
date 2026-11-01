@@ -294,6 +294,7 @@
   "tts_manual_input_description": "The entered text will be added to the speech list",
   "tts_no_texts": "No texts to read aloud.",
   "tts_play": "Play",
+  "tts_play_failed": "Failed to play speech",
   "tts_reading": "Reading (optional)",
   "tts_register": "Add",
   "tts_settings": "Settings",
