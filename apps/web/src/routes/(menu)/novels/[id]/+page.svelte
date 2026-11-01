@@ -18,7 +18,7 @@
 
   import NovelEditor from './_components/NovelEditor.svelte';
 
-  const writingMode: NovelWritingMode = 'vertical-rl';
+  let writingMode = $state<NovelWritingMode>('vertical-rl');
 
   let originalDocument = $state.raw<LoadedNovelDocument>();
   let fileType = $state<LoadedNovelDocumentFileType>('aozoratext');
@@ -68,6 +68,7 @@
         untrack(() => {
           originalDocument = document;
           fileType = nextFileType;
+          writingMode = document.writingMode;
           title = parts?.title || document.title;
           author = parts?.author ?? '';
           body = parts?.body ?? text;
