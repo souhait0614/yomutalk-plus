@@ -104,16 +104,16 @@
         <Button
           variant='outline'
           onclick={async () => {
-            if (await onClickSelectPlainTextFileButton(writingMode)) open = false;
+            if (await onClickSelectPixivNovelFileButton(writingMode)) open = false;
           }}>
-          {m.file_type_plain()}
+          {m.file_type_pixiv()}
         </Button>
         <Button
           variant='outline'
           onclick={async () => {
-            if (await onClickSelectPixivNovelFileButton(writingMode)) open = false;
+            if (await onClickSelectPlainTextFileButton(writingMode)) open = false;
           }}>
-          {m.file_type_pixiv()}
+          {m.file_type_plain()}
         </Button>
       </div>
       <Separator class='my-4'/>
