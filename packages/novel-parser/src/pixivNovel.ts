@@ -28,6 +28,8 @@
  *   pixiv小説記法ではないため解釈しない（《》は本文の文字として残す）。
  * ・未知のタグ: [foo:…] など
  *   本文を失わないよう、タグを文字としてそのまま残す。
+ * ・閉じていないタグや、末尾の ]] がそろわない二重括弧のタグ
+ *   末尾の文字を欠落させず、タグを本文の文字として残す。
  */
 import type {
   EmphasisMark,
@@ -42,6 +44,7 @@ import { mergeInlineStyles, normalizeSource, splitSentences } from './shared.ts'
 
 const CHAPTER_TAG = /^\s*\[chapter:([^\]]*)\]/u;
 const PAGE_BREAK_LINE = /^\s*\[newpage\]\s*$/u;
+const TAG_PREFIX = /\[(?:\[(rb|emphasismark|jumpuri):|(b|i|pixivimage|uploadedimage|jump):|(newpage)\]|\[(newpage)\]\])/uy;
 
 const EMPHASIS_MARKS: ReadonlyMap<string, EmphasisMark> = new Map([
   ['﹅', 'sesame-dot'],
@@ -120,15 +123,28 @@ function hasInlines(sentences: readonly NovelSentence[]): boolean {
 }
 
 function parsePixivInline(line: string): NovelInline[] {
-  return parsePixivSegment(line, undefined);
+  return parsePixivSegment(line, 0, line.length, undefined);
 }
 
 /**
- * 入れ子のタグは内側から順に修飾を重ねる。
+ * 行全体と括弧マップを共有し、指定範囲の入れ子だけを解析する。
  */
-function parsePixivSegment(text: string, baseStyle: NovelInlineStyle | undefined): NovelInline[] {
+function parsePixivSegment(
+  text: string,
+  start: number,
+  end: number,
+  baseStyle: NovelInlineStyle | undefined,
+  tagEnds?: ReadonlyMap<number, number>,
+): NovelInline[] {
+  if (start === end) return [];
+  const nextBracket = text.indexOf('[', start);
+  if (nextBracket === -1 || nextBracket >= end) {
+    return [{ type: 'text', value: text.slice(start, end), ...(baseStyle === undefined ? {} : { style: baseStyle }) }];
+  }
+
   const inlines: NovelInline[] = [];
-  let cursor = 0;
+  const ends = tagEnds ?? findPixivTagEnds(text);
+  let cursor = start;
 
   const appendText = (value: string, style: NovelInlineStyle | undefined = baseStyle): void => {
     if (value === '') return;
@@ -143,11 +159,11 @@ function parsePixivSegment(text: string, baseStyle: NovelInlineStyle | undefined
     inlines.push({ type: 'text', value, ...(style === undefined ? {} : { style }) });
   };
 
-  while (cursor < text.length) {
-    const tag = readPixivTag(text, cursor);
+  while (cursor < end) {
+    const tag = readPixivTag(text, cursor, end, ends);
 
     if (tag !== undefined) {
-      const nextCursor = applyPixivTag(tag, baseStyle, inlines);
+      const nextCursor = applyPixivTag(text, tag, baseStyle, inlines, ends);
 
       if (nextCursor !== undefined) {
         cursor = nextCursor;
@@ -170,53 +186,68 @@ function parsePixivSegment(text: string, baseStyle: NovelInlineStyle | undefined
 // eslint-disable-next-line @stylistic/operator-linebreak -- 長い union は行頭の | で揃えたい
 type PixivTag =
   | { kind: 'bare'; name: string; end: number; }
-  | { kind: 'single'; name: string; content: string; end: number; }
-  | { kind: 'double'; name: string; content: string; end: number; };
+  | { kind: 'single'; name: string; contentStart: number; contentEnd: number; end: number; }
+  | { kind: 'double'; name: string; contentStart: number; contentEnd: number; end: number; };
 
 /**
- * 指定位置から始まるタグを読み取る。閉じ位置は角括弧の対応を数えて決めるため、
- * 入れ子になったタグも 1 つのタグとして切り出せる。
+ * 対応する閉じ括弧が指定範囲内にあるタグだけを読み取る。
  */
-function readPixivTag(text: string, start: number): PixivTag | undefined {
+function readPixivTag(text: string, start: number, limit: number, tagEnds: ReadonlyMap<number, number>): PixivTag | undefined {
   if (text[start] !== '[') return undefined;
 
-  const end = findPixivTagEnd(text, start);
+  const end = tagEnds.get(start);
+  if (end === undefined || end >= limit) return undefined;
 
-  if (end === undefined) return undefined;
+  TAG_PREFIX.lastIndex = start;
+  const prefix = TAG_PREFIX.exec(text);
+  if (!prefix) return undefined;
 
-  const isDouble = text.startsWith('[[', start);
-  const body = text.slice(start + (isDouble ? 2 : 1), end - (isDouble ? 1 : 0));
-  const separator = body.indexOf(':');
-
-  if (separator === -1) return { kind: 'bare', name: body, end };
+  const bareName = prefix[3] ?? prefix[4];
+  if (bareName) return { kind: 'bare', name: bareName, end };
+  const name = prefix[1] ?? prefix[2];
+  if (name === undefined) return undefined;
+  const isDouble = prefix[1] !== undefined;
+  if (isDouble && text[end - 1] !== ']') return undefined;
 
   return {
     kind: isDouble ? 'double' : 'single',
-    name: body.slice(0, separator),
-    content: body.slice(separator + 1),
+    name,
+    contentStart: start + prefix[0].length,
+    contentEnd: end - (isDouble ? 1 : 0),
     end,
   };
 }
 
-function findPixivTagEnd(text: string, start: number): number | undefined {
-  let depth = 0;
+function findPixivTagEnds(text: string): ReadonlyMap<number, number> {
+  const starts: number[] = [];
+  const ends = new Map<number, number>();
 
-  for (let index = start; index < text.length; index += 1) {
+  // 閉じていない括弧や未知のタグが続いても、同じ残りの文字列を繰り返し走査しない
+  for (let index = 0; index < text.length; index += 1) {
     if (text[index] === '[') {
-      depth += 1;
+      starts.push(index);
     } else if (text[index] === ']') {
-      depth -= 1;
-      if (depth === 0) return index;
+      const start = starts.pop();
+      if (start !== undefined) ends.set(start, index);
     }
   }
 
-  return undefined;
+  return ends;
+}
+
+function trimPixivRange(text: string, start: number, end: number): readonly [number, number] {
+  const content = text.slice(start, end);
+  const trimmedStart = content.trimStart();
+  const rangeStart = start + content.length - trimmedStart.length;
+  return [rangeStart, rangeStart + trimmedStart.trimEnd().length];
 }
 
 function applyPixivTag(
+  text: string,
   tag: PixivTag,
   baseStyle: NovelInlineStyle | undefined,
   inlines: NovelInline[],
+  tagEnds: ReadonlyMap<number, number>,
 ): number | undefined {
   const nextCursor = tag.end + 1;
 
@@ -225,14 +256,15 @@ function applyPixivTag(
   }
 
   if (tag.kind === 'double') {
+    const content = text.slice(tag.contentStart, tag.contentEnd);
     switch (tag.name) {
       case 'rb': {
-        const split = tag.content.lastIndexOf('>');
+        const split = content.lastIndexOf('>');
 
         if (split === -1) return undefined;
 
-        const base = tag.content.slice(0, split).trim();
-        const reading = tag.content.slice(split + 1).trim();
+        const base = content.slice(0, split).trim();
+        const reading = content.slice(split + 1).trim();
 
         if (base === '' || reading === '') return undefined;
 
@@ -240,29 +272,29 @@ function applyPixivTag(
         return nextCursor;
       }
       case 'emphasismark': {
-        const split = tag.content.lastIndexOf('>');
+        const split = content.lastIndexOf('>');
 
         if (split === -1) return undefined;
 
-        const marked = tag.content.slice(0, split).trim();
-        const character = tag.content.slice(split + 1).trim() || DEFAULT_EMPHASIS_MARK;
+        const [start, end] = trimPixivRange(text, tag.contentStart, tag.contentStart + split);
+        const character = content.slice(split + 1).trim() || DEFAULT_EMPHASIS_MARK;
 
-        if (marked === '') return undefined;
+        if (start === end) return undefined;
 
-        inlines.push(...parsePixivSegment(marked, mergeInlineStyles(baseStyle, {
+        inlines.push(...parsePixivSegment(text, start, end, mergeInlineStyles(baseStyle, {
           emphasis: {
             mark: EMPHASIS_MARKS.get(character) ?? 'sesame-dot',
             character,
             side: 'right',
           },
-        })));
+        }), tagEnds));
         return nextCursor;
       }
       case 'jumpuri': {
-        const split = tag.content.lastIndexOf('>');
-        const title = (split === -1 ? tag.content : tag.content.slice(0, split)).trim();
+        const split = content.lastIndexOf('>');
+        const [start, end] = trimPixivRange(text, tag.contentStart, split === -1 ? tag.contentEnd : tag.contentStart + split);
 
-        inlines.push(...parsePixivSegment(title, baseStyle));
+        inlines.push(...parsePixivSegment(text, start, end, baseStyle, tagEnds));
         return nextCursor;
       }
       default: return undefined;
@@ -274,11 +306,11 @@ function applyPixivTag(
     case 'uploadedimage':
     case 'jump': return nextCursor;
     case 'b': {
-      inlines.push(...parsePixivSegment(tag.content, mergeInlineStyles(baseStyle, { bold: true })));
+      inlines.push(...parsePixivSegment(text, tag.contentStart, tag.contentEnd, mergeInlineStyles(baseStyle, { bold: true }), tagEnds));
       return nextCursor;
     }
     case 'i': {
-      inlines.push(...parsePixivSegment(tag.content, mergeInlineStyles(baseStyle, { italic: true })));
+      inlines.push(...parsePixivSegment(text, tag.contentStart, tag.contentEnd, mergeInlineStyles(baseStyle, { italic: true }), tagEnds));
       return nextCursor;
     }
     default: return undefined;
