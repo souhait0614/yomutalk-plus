@@ -19,6 +19,7 @@
   } from '$lib/sharedNovels';
   import { computeContentHash } from '$lib/utils/hash';
   import { FileNotSelectedError, getErrorMessage, pickSingleFile } from '$lib/utils/misc';
+  import { getNovelFileName } from '$lib/utils/novelFile';
   import { toast } from 'svelte-sonner';
   import { SvelteMap } from 'svelte/reactivity';
 
@@ -40,10 +41,7 @@
   const selectedIndexes = new SvelteMap<number, boolean>();
   const selectedCount = $derived([...selectedIndexes.values()].filter((selected) => selected).length);
 
-  const fileName = (novel: SharedNovel): string => (
-    // プレーンテキストはファイル名がそのまま小説のタイトルになるため、タイトルを保つ
-    novel.fileType === 'plaintext' ? novel.title : `${novel.title}.txt`
-  );
+  const fileName = (novel: SharedNovel): string => getNovelFileName(novel.fileType, novel.title);
 
   const setEntries = async (sharedNovels: SharedNovel[]) => {
     if (sharedNovels.length === 0) throw new Error(m.share_no_novel_received());

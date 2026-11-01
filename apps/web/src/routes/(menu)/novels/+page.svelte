@@ -19,6 +19,7 @@
   import * as NativeSelect from '$lib/shadcn-svelte/components/ui/native-select';
   import { Spinner } from '$lib/shadcn-svelte/components/ui/spinner';
   import { getErrorMessage } from '$lib/utils/misc';
+  import { getNovelFileName } from '$lib/utils/novelFile';
   import { decodeTextFile } from '$lib/utils/textEncoding';
   import { stateQuery } from 'dexie-svelte-query';
   import { PersistedState } from 'runed';
@@ -65,7 +66,7 @@
       const source = createFileType === 'aozoratext'
         ? composeAozoraText({ title, author: createAuthor.trim() || null, body: '' })
         : '';
-      const file = new File([source], createFileType === 'plaintext' ? title : `${title}.txt`, { type: 'text/plain;charset=utf-8' });
+      const file = new File([source], getNovelFileName(createFileType, title), { type: 'text/plain;charset=utf-8' });
       const id = await addLoadedNovelDocumentFromFile(createFileType, file, 'vertical-rl');
       createDialogOpen = false;
       await goto(resolve('/(menu)/novels/[id]', { id }));
