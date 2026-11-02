@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.3.1...web-v1.3.2) (2026-11-02)
+
+
+### Bug Fixes
+
+* **deps:** update npm production dependencies (non-major) ([#61](https://github.com/souhait0614/yomutalk-plus/issues/61)) ([97a4274](https://github.com/souhait0614/yomutalk-plus/commit/97a42746ed2676b5af666a5e2de93a9aeb75a0c7))
+
 ## [1.3.1](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.3.0...web-v1.3.1) (2026-11-01)
 
 
