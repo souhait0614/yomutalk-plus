@@ -18,7 +18,7 @@
     "@internationalized/date": "3.12.4",
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
-    "@sveltejs/adapter-cloudflare": "7.2.9",
+    "@sveltejs/adapter-cloudflare": "8.0.2",
     "@sveltejs/kit": "2.70.3",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tailwindcss/vite": "4.3.3",
