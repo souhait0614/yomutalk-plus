@@ -254,8 +254,8 @@ importers:
         specifier: 3.50.0
         version: 3.50.0(svelte@5.57.3(@typescript-eslint/types@8.72.1))
       '@tanstack/svelte-virtual':
-        specifier: 3.13.49
-        version: 3.13.49(svelte@5.57.3(@typescript-eslint/types@8.72.1))
+        specifier: 3.13.50
+        version: 3.13.50(svelte@5.57.3(@typescript-eslint/types@8.72.1))
       bits-ui:
         specifier: 2.20.2
         version: 2.20.2(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3(@typescript-eslint/types@8.72.1))(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)))(svelte@5.57.3(@typescript-eslint/types@8.72.1))(typescript@6.0.3)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)))(svelte@5.57.3(@typescript-eslint/types@8.72.1))
@@ -263,8 +263,8 @@ importers:
         specifier: 2.15.0
         version: 2.15.0
       cborg:
-        specifier: 6.1.5
-        version: 6.1.5
+        specifier: 6.2.0
+        version: 6.2.0
       cn:
         specifier: 0.5.0
         version: 0.5.0
@@ -290,8 +290,8 @@ importers:
         specifier: 0.38.0
         version: 0.38.0(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3(@typescript-eslint/types@8.72.1))(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)))(svelte@5.57.3(@typescript-eslint/types@8.72.1))(typescript@6.0.3)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)))(svelte@5.57.3(@typescript-eslint/types@8.72.1))(zod@4.6.7)
       shadcn-svelte:
-        specifier: 1.7.1
-        version: 1.7.1(svelte@5.57.3(@typescript-eslint/types@8.72.1))
+        specifier: 1.7.2
+        version: 1.7.2(svelte@5.57.3(@typescript-eslint/types@8.72.1))
       svelte-sonner:
         specifier: 1.2.2
         version: 1.2.2(svelte@5.57.3(@typescript-eslint/types@8.72.1))
@@ -2299,13 +2299,13 @@ packages:
       eslint: '>=9.18.0'
       typescript: '>=5.5.0'
 
-  '@tanstack/svelte-virtual@3.13.49':
-    resolution: {integrity: sha512-0P4dw7IF0ItwP3E/sye1rHfMkRPtJnX73VUjVaO6iGJmYVfXyVHnZ21SsWaY5OdTBYnBxZnJdBptuVgSI5zTKQ==}
+  '@tanstack/svelte-virtual@3.13.50':
+    resolution: {integrity: sha512-msRag/Da+WH+km/dFSbLJSKpzbrOhhrLItzeRuRsApOFdkFzUXjZpODl1nQYjZ4m095Ea0Q+ue4cnOhpI86awg==}
     peerDependencies:
       svelte: ^3.48.0 || ^4.0.0 || ^5.0.0
 
-  '@tanstack/virtual-core@3.19.8':
-    resolution: {integrity: sha512-Oz/SYBo/aVPyQkwtOw7Q23myITUgFIof2glQqydYJAPL6mH2SkJDkvDKZTklB+7gv5jGLZQhyTcd7SO1A1EODQ==}
+  '@tanstack/virtual-core@3.19.9':
+    resolution: {integrity: sha512-Syiaf3w69dFyYv4o2mqJ1/2VtBJTNq5Hu5cVXfnzOuJKFpUojukQR13ZW+5NvdMJM7GFHeNPmveMNhoIubiFyA==}
 
   '@trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1':
     resolution: {integrity: sha512-/67zpWDBLV+oYAEL682s1ktXL0HgqX76f6gaVGkGnVZlBbm1zd0v4Bz8MFF2GGhoX9rvfq3KSQHubFHwa6w6/Q==}
@@ -2686,8 +2686,8 @@ packages:
   caniuse-lite@1.0.30001820:
     resolution: {integrity: sha512-gfWD6MxqVCqAOwmODfZf7DchWvlrA+SRdNX7ceLfg3xRqe5ssjjpF7EgslC/0tiLiNTajdaNN/q8c/5u/7Gz8w==}
 
-  cborg@6.1.5:
-    resolution: {integrity: sha512-1aoxfkckZmul5tFUL0p1+VRiZrXUGMxk6JQVpVv42yD21K7fh86L5WlyYgzsNv4w6Nm9ysQI9c6yDemom24HUQ==}
+  cborg@6.2.0:
+    resolution: {integrity: sha512-90BdAPd5EUayc7Cj9+xD5d+TfgQiaQ3yoroUs4hmrm0ieupQlVB+SXVnYORidh74YKng1oliynPYxeEroYgimg==}
     hasBin: true
 
   chalk@4.1.2:
@@ -4229,8 +4229,8 @@ packages:
     resolution: {integrity: sha512-RJRdvCo6IAnPdsvP/7m6bsQqNnn1FCBX5ZNtFL98MmFF/4xAIJTIg1YbHW5DC2W5SKZanrC6i4HsJqlajw/dZw==}
     engines: {node: '>= 0.4'}
 
-  shadcn-svelte@1.7.1:
-    resolution: {integrity: sha512-tkUavVtc+6E2snOd7CmHZYq5hi1v9oM3KT0ks6cgN5G4IykbIbt+1xDrSWb9ENUh8PWqeses4xJPqRgCzkzcMQ==}
+  shadcn-svelte@1.7.2:
+    resolution: {integrity: sha512-VcFgfCupRK58kVuNrobWz+Smv0wryxW1bNZYvrMqYbm7gOfTEIb/Jy7C6y0N8Ry3/d0oAzvTRPzFu2V8u0nhMA==}
     hasBin: true
     peerDependencies:
       svelte: ^5.0.0
@@ -6532,12 +6532,12 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  '@tanstack/svelte-virtual@3.13.49(svelte@5.57.3(@typescript-eslint/types@8.72.1))':
+  '@tanstack/svelte-virtual@3.13.50(svelte@5.57.3(@typescript-eslint/types@8.72.1))':
     dependencies:
-      '@tanstack/virtual-core': 3.19.8
+      '@tanstack/virtual-core': 3.19.9
       svelte: 5.57.3(@typescript-eslint/types@8.72.1)
 
-  '@tanstack/virtual-core@3.19.8': {}
+  '@tanstack/virtual-core@3.19.9': {}
 
   '@trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1':
     dependencies:
@@ -6984,7 +6984,7 @@ snapshots:
 
   caniuse-lite@1.0.30001820: {}
 
-  cborg@6.1.5: {}
+  cborg@6.2.0: {}
 
   chalk@4.1.2:
     dependencies:
@@ -8629,7 +8629,7 @@ snapshots:
       es-errors: 1.3.0
       es-object-atoms: 1.1.2
 
-  shadcn-svelte@1.7.1(svelte@5.57.3(@typescript-eslint/types@8.72.1)):
+  shadcn-svelte@1.7.2(svelte@5.57.3(@typescript-eslint/types@8.72.1)):
     dependencies:
       cn: 0.3.3
       commander: 14.0.3
