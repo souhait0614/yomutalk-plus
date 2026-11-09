@@ -22,7 +22,7 @@
     "eslint-config-flat-gitignore": "2.4.0",
     "eslint-plugin-better-tailwindcss": "catalog:",
     "eslint-plugin-svelte": "catalog:",
-    "globals": "17.13.0",
+    "globals": "17.14.0",
     "jiti": "catalog:",
     "typescript": "catalog:"
   }
