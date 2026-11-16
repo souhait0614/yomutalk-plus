@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.2](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.3.1...web-v1.3.2) (2026-11-16)
+
+
+### Bug Fixes
+
+* **deps:** update npm production dependencies (non-major) ([#61](https://github.com/souhait0614/yomutalk-plus/issues/61)) ([97a4274](https://github.com/souhait0614/yomutalk-plus/commit/97a42746ed2676b5af666a5e2de93a9aeb75a0c7))
+* **deps:** update npm production dependencies (non-major) ([#69](https://github.com/souhait0614/yomutalk-plus/issues/69)) ([2b7977b](https://github.com/souhait0614/yomutalk-plus/commit/2b7977b32437ffcd34e9aaf958989c9c82741d4e))
+* **deps:** update npm production dependencies (non-major) ([#84](https://github.com/souhait0614/yomutalk-plus/issues/84)) ([24e3290](https://github.com/souhait0614/yomutalk-plus/commit/24e3290478eb8cb3b36a7306f1ed7891f1865ac8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @repo/api bumped to 1.0.2
+    * @repo/tts bumped to 1.2.2
+
 ## [1.3.1](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.3.0...web-v1.3.1) (2026-11-01)
 
 
