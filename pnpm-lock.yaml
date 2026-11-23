@@ -260,8 +260,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/tts
       '@tabler/icons-svelte':
-        specifier: 3.51.0
-        version: 3.51.0(svelte@5.57.3(@typescript-eslint/types@8.72.2))
+        specifier: 3.52.0
+        version: 3.52.0(svelte@5.57.3(@typescript-eslint/types@8.72.2))
       '@tanstack/svelte-virtual':
         specifier: 3.13.52
         version: 3.13.52(svelte@5.57.3(@typescript-eslint/types@8.72.2))
@@ -317,8 +317,8 @@ importers:
         specifier: 1.5.0
         version: 1.5.0(typescript@6.0.3)
       zxing-wasm:
-        specifier: 3.1.6
-        version: 3.1.6(@types/emscripten@1.41.6)
+        specifier: 3.1.7
+        version: 3.1.7(@types/emscripten@1.41.6)
     devDependencies:
       '@inlang/paraglide-js':
         specifier: 2.29.3
@@ -387,8 +387,8 @@ importers:
   packages/api:
     dependencies:
       hono:
-        specifier: 4.13.18
-        version: 4.13.18
+        specifier: 4.13.19
+        version: 4.13.19
       valibot:
         specifier: 1.5.0
         version: 1.5.0(typescript@6.0.3)
@@ -2218,13 +2218,13 @@ packages:
   '@swc/helpers@0.5.24':
     resolution: {integrity: sha512-6tcXo4kA8HgGO7AVmawB57RYi/piBPYVHVcO6dXjX+SZw8GoHmi262sp4v2Ha2kNP9Cx84qei27yT+fjS1lxgg==}
 
-  '@tabler/icons-svelte@3.51.0':
-    resolution: {integrity: sha512-DFpbZlxPtitelLSf4G6nOipItS+abn9zVTCkwvJVQXil/aGoViKtCCCVUK8kC5R9clkEStKjEJBPgwQvq4om4g==}
+  '@tabler/icons-svelte@3.52.0':
+    resolution: {integrity: sha512-/hongV7uRHR+eWHdo7ez/gEmHNAuU9vugZ7CQKwLhXXT+yXgyeXGyx3FHjtkvwRcV3uQTL0m2nWKDV2fITZKKw==}
     peerDependencies:
       svelte: '>=3 <6 || >=5.0.0-next.0'
 
-  '@tabler/icons@3.51.0':
-    resolution: {integrity: sha512-0pinvPZz7YeX+OSfxuEAbnEPWbocVXW5iU8h5lh41pYG8sZuQfpWECC980lxOT0clGIcNGn8xsBr+zKaRGdA/g==}
+  '@tabler/icons@3.52.0':
+    resolution: {integrity: sha512-dldKlJNfO/gZnGLcIY0X2EFFKIMGwL/rEvTqglvBgAPFiwj9pZOCN5V3Sf0Gyjq6foX4VQmLdOmsS4w5FdWKAw==}
 
   '@tailwindcss/node@4.3.5':
     resolution: {integrity: sha512-yT53FzV4ke0cr/BguDxhWMpm5MJu1O2muzk+tKw6lKHjODAsYArBbWwFbJiaksfzFv1tpkO9QHGzmfs1hJT66g==}
@@ -3334,8 +3334,8 @@ packages:
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
 
-  hono@4.13.18:
-    resolution: {integrity: sha512-H9q/E1XizaWstJxUW881dmLxEj+t/TrGGnyxINkm4+sK0qUwsMtFdo2BWI9Vs3cIS19MU6b6iCijoUoEf4f3DA==}
+  hono@4.13.19:
+    resolution: {integrity: sha512-KmXvQAXwcAHV+muzbIwoJ23niEB5nMoDVr9WcRkU8mvjUECm/1+7v4Jgp7P7a+H6MLFrh+vXrGonGrGS+RQfkA==}
     engines: {node: '>=16.9.0'}
 
   idb@7.1.1:
@@ -4806,8 +4806,8 @@ packages:
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
-  zxing-wasm@3.1.6:
-    resolution: {integrity: sha512-mU7UNuvl+hOT+nlSOQTMHZ2tM8lRMsbjDIp5IO/+HmBl/FOq77q0OSZPJ3cm42A9c1MKU6Uve67FiGdkhsrT9g==}
+  zxing-wasm@3.1.7:
+    resolution: {integrity: sha512-LI94ndlOY+xoqlkNcc0EwByrMpUXKrCX171EQ38kGWqpiRq/gcnC+ZrbRipvxI3uV4LaDtNlKo1p9Uayg1sesQ==}
     peerDependencies:
       '@types/emscripten': '>=1.39.6'
 
@@ -6411,12 +6411,12 @@ snapshots:
 
   '@swc/helpers@0.5.24': {}
 
-  '@tabler/icons-svelte@3.51.0(svelte@5.57.3(@typescript-eslint/types@8.72.2))':
+  '@tabler/icons-svelte@3.52.0(svelte@5.57.3(@typescript-eslint/types@8.72.2))':
     dependencies:
-      '@tabler/icons': 3.51.0
+      '@tabler/icons': 3.52.0
       svelte: 5.57.3(@typescript-eslint/types@8.72.2)
 
-  '@tabler/icons@3.51.0': {}
+  '@tabler/icons@3.52.0': {}
 
   '@tailwindcss/node@4.3.5':
     dependencies:
@@ -7716,7 +7716,7 @@ snapshots:
     dependencies:
       hermes-estree: 0.25.1
 
-  hono@4.13.18: {}
+  hono@4.13.19: {}
 
   idb@7.1.1: {}
 
@@ -9307,7 +9307,7 @@ snapshots:
 
   zod@4.6.7: {}
 
-  zxing-wasm@3.1.6(@types/emscripten@1.41.6):
+  zxing-wasm@3.1.7(@types/emscripten@1.41.6):
     dependencies:
       '@types/emscripten': 1.41.6
       type-fest: 5.10.0
