@@ -47,7 +47,7 @@
     "@tanstack/svelte-virtual": "3.13.52",
     "bits-ui": "2.21.0",
     "bowser": "2.15.0",
-    "cborg": "6.2.1",
+    "cborg": "7.0.0",
     "cn": "0.5.2",
     "dexie": "4.4.7",
     "dexie-export-import": "4.4.2",
