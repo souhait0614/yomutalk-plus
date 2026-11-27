@@ -4,7 +4,7 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import adapter from '@sveltejs/adapter-cloudflare';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
-import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { LegacySvelteKitPWA } from '@vite-pwa/sveltekit/legacy';
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
@@ -75,9 +75,14 @@ export default defineConfig({
         },
       ],
     }),
-    SvelteKitPWA({
+    LegacySvelteKitPWA({
       registerType: 'prompt',
       manifest: false,
+      generateSW: {
+        // このアプリは SPA で prerender しないため、プラグインが自動追加する
+        // prerendered/** の glob は常に空になる。空 glob を警告に留める。
+        globStrict: false,
+      },
     }),
   ],
 });
