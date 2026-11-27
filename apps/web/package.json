@@ -14,7 +14,7 @@
     "typecheck:watch": "svelte-kit sync && paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --emit-ts-declarations && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
-    "@inlang/paraglide-js": "2.29.3",
+    "@inlang/paraglide-js": "3.2.2",
     "@internationalized/date": "3.12.4",
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
