@@ -26,6 +26,7 @@
     "@vite-pwa/sveltekit": "2.0.4",
     "eslint": "catalog:",
     "jiti": "catalog:",
+    "magicast": "^0.5.5",
     "svelte": "5.58.0",
     "svelte-check": "4.7.8",
     "tailwindcss": "4.3.5",
