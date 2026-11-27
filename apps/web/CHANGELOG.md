@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.3.2](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.3.1...web-v1.3.2) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** revert @sveltejs/adapter-cloudflare to v7 for SvelteKit 2 ([#95](https://github.com/souhait0614/yomutalk-plus/issues/95)) ([c2b804e](https://github.com/souhait0614/yomutalk-plus/commit/c2b804e682cdb86c4655e3ac15796101370624b6))
+* **deps:** update dependency cborg to v7 ([#92](https://github.com/souhait0614/yomutalk-plus/issues/92)) ([c97b924](https://github.com/souhait0614/yomutalk-plus/commit/c97b924a874343e649f506c148c668b263e66d88))
+* **deps:** update dependency tailwind-variants to v4 ([#43](https://github.com/souhait0614/yomutalk-plus/issues/43)) ([d8fdbef](https://github.com/souhait0614/yomutalk-plus/commit/d8fdbef0ab416b8fd0c5dc90b9a267e7b43082d2))
+* **deps:** update npm production dependencies (non-major) ([#61](https://github.com/souhait0614/yomutalk-plus/issues/61)) ([97a4274](https://github.com/souhait0614/yomutalk-plus/commit/97a42746ed2676b5af666a5e2de93a9aeb75a0c7))
+* **deps:** update npm production dependencies (non-major) ([#69](https://github.com/souhait0614/yomutalk-plus/issues/69)) ([2b7977b](https://github.com/souhait0614/yomutalk-plus/commit/2b7977b32437ffcd34e9aaf958989c9c82741d4e))
+* **deps:** update npm production dependencies (non-major) ([#84](https://github.com/souhait0614/yomutalk-plus/issues/84)) ([24e3290](https://github.com/souhait0614/yomutalk-plus/commit/24e3290478eb8cb3b36a7306f1ed7891f1865ac8))
+* **deps:** update npm production dependencies (non-major) ([#90](https://github.com/souhait0614/yomutalk-plus/issues/90)) ([e42cf82](https://github.com/souhait0614/yomutalk-plus/commit/e42cf82c7a7f940e3ceb9b888424abfd5fe977ad))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @repo/api bumped to 1.0.2
+    * @repo/tts bumped to 1.2.2
+
 ## [1.3.1](https://github.com/souhait0614/yomutalk-plus/compare/web-v1.3.0...web-v1.3.1) (2026-11-01)
 
 
